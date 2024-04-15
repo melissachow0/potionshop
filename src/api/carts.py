@@ -119,12 +119,16 @@ class CartCheckout(BaseModel):
 @router.post("/{cart_id}/checkout")
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
-    # with db.engine.begin() as connection:
-    #     green_potions = connection.execute(sqlalchemy.text("SELECT num_green_potions FROM global_inventory"))
-    #     gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory"))
-    #     gold = gold + 55
-    #     green_potions = green_potions - 1
-    #     connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = ${gold}"))
+    with db.engine.begin() as connection:
+       quantity = connection.execute(sqlalchemy.text("SELECT 1 quantity FROM cart_items WHERE :card_id"), {"card_id": cart_id}).scalar()
+       # how will I keep track of price?
+       green_bottles = connection.execute(sqlalchemy.text("SELECT num_green_potions FROM global_inventory")).scalar()
+       green_bottles = green_bottles - green_bottles
+       connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_green_potions = :num"), {"num": green_bottles})
+       gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
+       gold = gold - (quantity * 46) # would probably keep track of price based on sku?? 
+       connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = :gold"), {"gold": gold})
 
 
-    return {"total_potions_bought": 1, "total_gold_paid": 50}
+
+    return {"total_potions_bought": quantity, "total_gold_paid": (quantity * 46)}
