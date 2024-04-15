@@ -120,7 +120,7 @@ class CartCheckout(BaseModel):
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
     with db.engine.begin() as connection:
-       quantity = connection.execute(sqlalchemy.text("SELECT 1 quantity FROM cart_items WHERE :card_id"), {"card_id": cart_id}).scalar()
+       quantity, item_sku = connection.execute(sqlalchemy.text("SELECT quantity, item_sku  FROM cart_items WHERE :card_id"), {"card_id": cart_id}).first()
        # how will I keep track of price?
        green_bottles = connection.execute(sqlalchemy.text("SELECT num_green_potions FROM global_inventory")).scalar()
        green_bottles = green_bottles - green_bottles

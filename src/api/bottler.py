@@ -22,7 +22,7 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
     """ """
     green_quantity = 0
     
-    green_bottle = next((potion for potion in potions_delivered if potion.potion_type == [0, 100, 0, 0]), None)
+    green_bottle = next((potion for potion in potions_delivered if potion.potion_type[1] == 100), None)
     if green_bottle:
          green_quantity = green_bottle.quantity
 

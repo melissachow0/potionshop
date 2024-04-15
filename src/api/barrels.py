@@ -45,6 +45,15 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
 def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
     print(wholesale_catalog)
+    if wholesale_catalog.potion_type[0] == 100:
+        num_ml = "num_red_ml"
+    elif wholesale_catalog.potion_type[1] == 100:
+        num_ml = "num_green_ml"
+    else:
+        num_ml = "num_blue_ml"
+    
+    
+
 
     with db.engine.begin() as connection:
         green_potions = connection.execute(sqlalchemy.text("SELECT num_green_potions FROM global_inventory")).scalar()
