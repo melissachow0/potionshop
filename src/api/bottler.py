@@ -20,22 +20,33 @@ class PotionInventory(BaseModel):
 @router.post("/deliver/{order_id}")
 def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int):
     """ """
-    green_quantity = 0
     
-    green_bottle = next((potion for potion in potions_delivered if potion.potion_type[1] == 100), None)
-    if green_bottle:
-         green_quantity = green_bottle.quantity
+    for potion in potions_delivered:
+        num_potions = 0
+        num_ml = 0
+        if potion.potion_type[0]== 100:
+            num_potions = "num_red_potions"
+            num_ml = "num_red_ml"
+        elif potion.potion_type[1] == 100:
+            num_potions = "num_green_potions"
+            num_ml = "num_green_ml"
+        elif potion.potion_type[2] == 100:
+            num_potions = "num_blue_potions"
+            num_ml = "num_blue_ml"
+        if num_potions:
+            with db.engine.begin() as connection:
+                ml = connection.execute(sqlalchemy.text(f"SELECT {num_ml} FROM global_inventory")).scalar()
+                if ml >= (potion.quantity * 100):
+                    bottles = connection.execute(sqlalchemy.text(f"SELECT {num_potions} FROM global_inventory")).scalar()
+                    bottles = potion.quantity + bottles
+                    connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET {num_potions} = :num"), {"num": bottles})
+                    ml = ml - (potion.quantity * 100)
+                    connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET {num_ml} = :num"), {"num": ml})
+            
+                    
+        
 
-    with db.engine.begin() as connection:
-        green_ml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).scalar()
-        if green_ml >= (green_quantity * 100):
-              green_bottles = connection.execute(sqlalchemy.text("SELECT num_green_potions FROM global_inventory")).scalar()
-              green_bottles = green_quantity + green_bottles
-              connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_green_potions = :num"), {"num": green_bottles})
-              green_ml = green_ml - (green_quantity * 100)
-              connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_green_ml = :num"), {"num": green_ml})
-    
-              
+
         
 
     print(f"potions delivered: {potions_delivered} order_id: {order_id}")

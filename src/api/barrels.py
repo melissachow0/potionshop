@@ -24,9 +24,9 @@ class Barrel(BaseModel):
 @router.post("/deliver/{order_id}")
 def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     """ """
-    num_ml = 0
     print(f"barrels delievered: {barrels_delivered} order_id: {order_id}")
     for barrel in barrels_delivered:
+        num_ml = 0
         if barrel.potion_type[0]== 100:
             num_ml = "num_red_ml"
         elif barrel.potion_type[1] == 100:
@@ -54,10 +54,9 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
     print(wholesale_catalog)
     barrels = []
-    potions = 0
-  
     
     for barrel in wholesale_catalog:
+        potions = 0
         if barrel.potion_type[0]== 100:
             potions = "num_red_potions"
         elif barrel.potion_type[1] == 100:
