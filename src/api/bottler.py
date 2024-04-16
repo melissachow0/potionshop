@@ -56,13 +56,27 @@ def get_bottle_plan():
 
     with db.engine.begin() as connection:
              green_ml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).scalar()
-             quantity = green_ml//100
+             blue_ml = connection.execute(sqlalchemy.text("SELECT num_blue_ml FROM global_inventory")).scalar()
+             red_ml = connection.execute(sqlalchemy.text("SELECT num_red_ml FROM global_inventory")).scalar()
+             quantity_green = green_ml//100
+             quantity_blue = blue_ml//100
+             quantity_red = red_ml//100
+             
 
     return [
             {
                 "potion_type": [0, 100, 0, 0], # Green potions
-                "quantity": quantity,
+                "quantity": quantity_green,
+            },
+            {
+                 "potion_type": [100, 0, 0, 0], # Red potions
+                 "qunatiy": quantity_red,
+            },
+            {
+                "potion_type": [0, 0, 100, 0], # Blue potions
+                "quantity": quantity_blue,
             }
+
         ]
 
 if __name__ == "__main__":
