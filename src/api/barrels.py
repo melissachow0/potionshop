@@ -45,31 +45,29 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
 def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
     print(wholesale_catalog)
-    if wholesale_catalog.potion_type[0] == 100:
-        potions = "num_red_potions"
-    elif wholesale_catalog.potion_type[1] == 100:
-        potions = "num_green_potions"
-    else:
-        potions = "num_blue_potions"
+    barrels = []
+  
     
-    
-
-
-    with db.engine.begin() as connection:
-        potions = connection.execute(sqlalchemy.text("SELECT :num_potions FROM global_inventory"), {":num_potions": potions}).scalar()
-        gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
-
-        
-        if potions < 10:
-           # quantity = gold//wholesale_catalog.price
-           quantity = 1
+    for barrel in wholesale_catalog:
+        if barrel.potion_type[0]== 100:
+            potions = "num_red_potions"
+        elif barrel.potion_type[1] == 100:
+            potions = "num_green_potions"
         else:
-           quantity = 0
+            potions = "num_blue_potions"
+    
+        with db.engine.begin() as connection:
+            potions = connection.execute(sqlalchemy.text(f"SELECT {potions} FROM global_inventory")).scalar()
+            gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
 
-    return [
-        {
-            "sku": wholesale_catalog.sku,
-            "quantity": quantity,
-        }
-    ]
+            
+        if potions < 10:
+            quantity = gold//barrel.price
+            while quantity > barrel.quantity:
+                quantity -= 1
+        else:
+            quantity = 0
+        barrels.append({"sku": barrel.sku, "quantity": quantity})
+
+    return barrels
 
