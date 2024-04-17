@@ -72,23 +72,28 @@ def get_bottle_plan():
              quantity_green = green_ml//100
              quantity_blue = blue_ml//100
              quantity_red = red_ml//100
-             
-
-    return [
+    potions = []
+    if quantity_blue > 0:
+        potions.append({
+                "potion_type": [0, 0, 100, 0], # Blue potions
+                "quantity": quantity_blue,
+            })
+    if quantity_red > 0:
+        potions.append({
+                 "potion_type": [100, 0, 0, 0], # Red potions
+                 "qunatiy": quantity_red,
+            })
+    if quantity_green > 0:
+        potions.append(
             {
                 "potion_type": [0, 100, 0, 0], # Green potions
                 "quantity": quantity_green,
-            },
-            {
-                 "potion_type": [100, 0, 0, 0], # Red potions
-                 "qunatiy": quantity_red,
-            },
-            {
-                "potion_type": [0, 0, 100, 0], # Blue potions
-                "quantity": quantity_blue,
             }
-
-        ]
+        )
+    return potions
+             
+                 
+            
 
 if __name__ == "__main__":
     print(get_bottle_plan())

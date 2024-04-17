@@ -19,28 +19,30 @@ def get_catalog():
         red_potions = connection.execute(sqlalchemy.text("SELECT num_red_potions FROM global_inventory")).scalar_one()
 
 
+    catalog = []
 
-
-    return [
-            {
+    if green_potions > 0:
+        catalog.append(            {
                 "sku": "GREEN_POTION",
                 "name": "green potion",
                 "quantity": green_potions,
                 "price": 46,
                 "potion_type": [0, 100 , 0 , 0],
-            },
-            {
+            })
+    if blue_potions > 0:
+        catalog.append( {
                 "sku": "RED_POTION",
                 "name": "red potion",
                 "quantity": red_potions,
                 "price": 40,
                 "potion_type": [100, 0 , 0 , 0],
-            },
-            {
+            })
+    if red_potions > 0:
+            catalog.append( {
                 "sku": "BLUE_POTION",
                 "name": "blue potion",
                 "quantity": blue_potions,
                 "price": 45,
                 "potion_type": [0, 0 , 100 , 0],
-            }
-        ]
+            })
+    return catalog

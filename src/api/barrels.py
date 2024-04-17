@@ -25,13 +25,14 @@ class Barrel(BaseModel):
 def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     """ """
     print(f"barrels delievered: {barrels_delivered} order_id: {order_id}")
+  
     for barrel in barrels_delivered:
         num_ml = 0
-        if barrel.potion_type[0]== 100:
+        if barrel.potion_type[0]== 1:
             num_ml = "num_red_ml"
-        elif barrel.potion_type[1] == 100:
+        elif barrel.potion_type[1] == 1:
             num_ml = "num_green_ml"
-        elif barrel.potion_type[2] == 100:
+        elif barrel.potion_type[2] == 1:
             num_ml = "num_blue_ml"
         
         if num_ml:
@@ -57,11 +58,11 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     
     for barrel in wholesale_catalog:
         potions = 0
-        if barrel.potion_type[0]== 100:
+        if barrel.potion_type[0]== 1:
             potions = "num_red_potions"
-        elif barrel.potion_type[1] == 100:
+        elif barrel.potion_type[1] == 1:
             potions = "num_green_potions"
-        elif barrel.potion_type[2] == 100:
+        elif barrel.potion_type[2] == 1:
             potions = "num_blue_potions"
         
         if potions:
