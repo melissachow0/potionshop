@@ -117,17 +117,25 @@ class CartCheckout(BaseModel):
 @router.post("/{cart_id}/checkout")
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
+    num_potions = ""
     with db.engine.begin() as connection:
-       quantity, item_sku = connection.execute(sqlalchemy.text("SELECT quantity, item_sku  FROM cart_items WHERE :card_id"), {"card_id": cart_id}).first()
-       # how will I keep track of price?
-       #if item_sku == "GREEN_POTION":
-       green_bottles = connection.execute(sqlalchemy.text("SELECT num_green_potions FROM global_inventory")).scalar()
-       green_bottles = green_bottles - green_bottles
-       connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_green_potions = :num"), {"num": green_bottles})
-       gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
-       gold = gold - (quantity * 46) # would probably keep track of price based on sku?? 
-       connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = :gold"), {"gold": gold})
+        quantity, SQLitem_sku = connection.execute(sqlalchemy.text("SELECT quantity, item_sku  FROM cart_items WHERE cart_id = :cart_id"), {"cart_id": cart_id}).first()
+        item_sku = SQLitem_sku[1:-1]
+        # how will I keep track of price?
+        price =  connection.execute(sqlalchemy.text("SELECT price FROM catalog WHERE item_sku = :item_sku"), {"item_sku":item_sku }).scalar()
+        if item_sku == "GREEN_POTION":
+            num_potions = "num_green_potions"
+        elif item_sku == "BLUE_POTION":
+            num_potions = "num_blue_potions"
+        elif item_sku == "RED_POTION":
+            num_potions = "num_red_potions"
+        bottles = connection.execute(sqlalchemy.text(f"SELECT {num_potions} FROM global_inventory")).scalar()
+        bottles = bottles - quantity
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET {num_potions} = :num"), {"num": bottles})
+        gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
+        gold = gold - (quantity * price) # would probably keep track of price based on sku?? 
+        connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = :gold"), {"gold": gold})
 
 
 
-    return {"total_potions_bought": quantity, "total_gold_paid": (quantity * 46)}
+    return {"total_potions_bought": quantity, "total_gold_paid": (quantity * price)}
