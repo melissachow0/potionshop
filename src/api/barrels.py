@@ -78,7 +78,8 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     quantity -= 1
             else:
                 quantity = 0
-            barrels.append({"sku": barrel.sku, "quantity": quantity,})
+            if quantity > 0: 
+                barrels.append({"sku": barrel.sku, "quantity": quantity,})
 
         return barrels
 

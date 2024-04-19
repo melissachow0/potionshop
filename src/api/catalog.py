@@ -33,7 +33,7 @@ def get_catalog():
         catalog.append( {
                 "sku": "RED_POTION",
                 "name": "red potion",
-                "quantity": red_potions,
+                "quantity": blue_potions,
                 "price": 40,
                 "potion_type": [100, 0 , 0 , 0],
             })
@@ -41,7 +41,7 @@ def get_catalog():
             catalog.append( {
                 "sku": "BLUE_POTION",
                 "name": "blue potion",
-                "quantity": blue_potions,
+                "quantity": red_potions,
                 "price": 45,
                 "potion_type": [0, 0 , 100 , 0],
             })
