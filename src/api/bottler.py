@@ -81,7 +81,7 @@ def get_bottle_plan():
     if quantity_red > 0:
         potions.append({
                  "potion_type": [100, 0, 0, 0], # Red potions
-                 "qunatiy": quantity_red,
+                 "quantity": quantity_red,
             })
     if quantity_green > 0:
         potions.append(
