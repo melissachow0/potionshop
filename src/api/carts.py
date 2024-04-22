@@ -120,7 +120,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     num_potions = ""
     with db.engine.begin() as connection:
         quantity, SQLitem_sku = connection.execute(sqlalchemy.text("SELECT quantity, item_sku  FROM cart_items WHERE cart_id = :cart_id"), {"cart_id": cart_id}).first()
-        item_sku = SQLitem_sku[1:-1]
+        item_sku = SQLitem_sku[0:]
         # how will I keep track of price?
         price =  connection.execute(sqlalchemy.text("SELECT price FROM catalog WHERE item_sku = :item_sku"), {"item_sku":item_sku }).scalar()
         if item_sku == "GREEN_POTION":
@@ -130,6 +130,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         elif item_sku == "RED_POTION":
             num_potions = "num_red_potions"
         bottles = connection.execute(sqlalchemy.text(f"SELECT {num_potions} FROM global_inventory")).scalar()
+        print(bottles)
         bottles = bottles - quantity
         connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET {num_potions} = :num"), {"num": bottles})
         gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
