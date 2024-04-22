@@ -133,7 +133,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         bottles = bottles - quantity
         connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET {num_potions} = :num"), {"num": bottles})
         gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
-        gold = gold - (quantity * price) # would probably keep track of price based on sku?? 
+        gold = gold + (quantity * price) # would probably keep track of price based on sku?? 
         connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = :gold"), {"gold": gold})
 
 

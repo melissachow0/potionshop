@@ -31,16 +31,16 @@ def get_catalog():
             })
     if blue_potions > 0:
         catalog.append( {
-                "sku": "RED_POTION",
-                "name": "red potion",
+                "sku": "BLUE_POTION",
+                "name": "blue potion",
                 "quantity": blue_potions,
                 "price": 40,
                 "potion_type": [100, 0 , 0 , 0],
             })
     if red_potions > 0:
             catalog.append( {
-                "sku": "BLUE_POTION",
-                "name": "blue potion",
+                "sku": "RED_POTION",
+                "name": "red potion",
                 "quantity": red_potions,
                 "price": 45,
                 "potion_type": [0, 0 , 100 , 0],
