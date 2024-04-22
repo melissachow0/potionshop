@@ -119,8 +119,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
     num_potions = ""
     with db.engine.begin() as connection:
-        quantity, SQLitem_sku = connection.execute(sqlalchemy.text("SELECT quantity, item_sku  FROM cart_items WHERE cart_id = :cart_id"), {"cart_id": cart_id}).first()
-        item_sku = SQLitem_sku[0:]
+        quantity, item_sku = connection.execute(sqlalchemy.text("SELECT quantity, item_sku  FROM cart_items WHERE cart_id = :cart_id"), {"cart_id": cart_id}).first()
         # how will I keep track of price?
         price =  connection.execute(sqlalchemy.text("SELECT price FROM catalog WHERE item_sku = :item_sku"), {"item_sku":item_sku }).scalar()
         if item_sku == "GREEN_POTION":
