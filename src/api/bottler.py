@@ -20,34 +20,41 @@ class PotionInventory(BaseModel):
 @router.post("/deliver/{order_id}")
 def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int):
     """ """
+    red_ml = 0
+    blue_ml = 0
+    green_ml = 0
+    dark_ml = 0
+
+    with db.engine.begin() as connection:
+
+        for potion in potions_delivered:
+            red_ml += (potion.potion_type[0] * potion.quantity)
+            green_ml += (potion.potion_type[1] * potion.quantity)
+            blue_ml += (potion.potion_type[2] * potion.quantity)
+            dark_ml += (potion.potion_type[3] * potion.quantity)
+
+            connection.execute(sqlalchemy.text (
+                """
+                UPDATE potions
+                SET quantity = potions.quantity + :quantity
+                WHERE potions.red = :red 
+                and potions.green = :green 
+                and potions.blue = :blue
+                and potions.dark = :dark
+                """
+            ), {"quantity": potion.quantity, "red": potion.potion_type[0], "green": potion.potion_type[1], "blue": potion.potion_type[2], "dark": potion.potion_type[3]})
+
     
-    for potion in potions_delivered:
-        num_potions = 0
-        num_ml = 0
-        if potion.potion_type[0]== 100:
-            num_potions = "num_red_potions"
-            num_ml = "num_red_ml"
-        elif potion.potion_type[1] == 100:
-            num_potions = "num_green_potions"
-            num_ml = "num_green_ml"
-        elif potion.potion_type[2] == 100:
-            num_potions = "num_blue_potions"
-            num_ml = "num_blue_ml"
-        if num_potions:
-            with db.engine.begin() as connection:
-                ml = connection.execute(sqlalchemy.text(f"SELECT {num_ml} FROM global_inventory")).scalar()
-                if ml >= (potion.quantity * 100):
-                    bottles = connection.execute(sqlalchemy.text(f"SELECT {num_potions} FROM global_inventory")).scalar()
-                    bottles = potion.quantity + bottles
-                    connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET {num_potions} = :num"), {"num": bottles})
-                    ml = ml - (potion.quantity * 100)
-                    connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET {num_ml} = :num"), {"num": ml})
-            
-                    
-        
-
-
-        
+        connection.execute(sqlalchemy.text(
+            """
+                UPDATE global_inventory SET
+                num_red_ml = num_red_ml - :red_ml,
+                num_green_ml = num_green_ml - :green_ml,
+                num_blue_ml = num_blue_ml - :blue_ml,
+                num_dark_ml = num_dark_ml - :dark_ml
+            """
+        ), [{"red_ml": red_ml, "green_ml": green_ml, "blue_ml": blue_ml, "dark_ml": dark_ml}])
+   
 
     print(f"potions delivered: {potions_delivered} order_id: {order_id}")
 
@@ -69,28 +76,31 @@ def get_bottle_plan():
              green_ml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).scalar()
              blue_ml = connection.execute(sqlalchemy.text("SELECT num_blue_ml FROM global_inventory")).scalar()
              red_ml = connection.execute(sqlalchemy.text("SELECT num_red_ml FROM global_inventory")).scalar()
-             quantity_green = green_ml//100
-             quantity_blue = blue_ml//100
-             quantity_red = red_ml//100
-    potions = []
-    if quantity_blue > 0:
-        potions.append({
-                "potion_type": [0, 0, 100, 0], # Blue potions
-                "quantity": quantity_blue,
-            })
-    if quantity_red > 0:
-        potions.append({
-                 "potion_type": [100, 0, 0, 0], # Red potions
-                 "quantity": quantity_red,
-            })
-    if quantity_green > 0:
-        potions.append(
-            {
-                "potion_type": [0, 100, 0, 0], # Green potions
-                "quantity": quantity_green,
-            }
-        )
-    return potions
+             dark_ml = connection.execute(sqlalchemy.text("SELECT num_dark_ml FROM global_inventory")).scalar()
+             potions = connection.execute(sqlalchemy.text("SELECT * FROM potions ORDER BY RANDOM()")).fetchall()
+             
+    potion_plan = []
+    for potion in potions:
+        colors = []
+        if potion.red > 0:
+            colors.append(red_ml//potion.red)
+        if potion.blue > 0:
+            colors.append(blue_ml//potion.blue)
+        if potion.green > 0:
+            colors.append(green_ml//potion.green)
+        if potion.dark > 0:
+            colors.append(dark_ml//potion.dark)
+        quantity = min(colors)
+        if quantity > 0:
+            red_ml -= (potion.red * quantity)
+            blue_ml -= (potion.blue * quantity)
+            green_ml -= (potion.green * quantity)
+            dark_ml -= (potion.dark * quantity)
+            potion_plan.append({
+                    "potion_type": [potion.red, potion.green, potion.blue, potion.dark],
+                    "quantity": quantity,
+                } )
+    return potion_plan
              
                  
             

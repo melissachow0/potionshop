@@ -105,7 +105,8 @@ class CartItem(BaseModel):
 def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     """ """
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("INSERT INTO cart_items (item_sku , quantity, cart_id) VALUES (:sku , :quantity, :cart_id)"), {"sku": item_sku, "quantity": cart_item.quantity, "cart_id": cart_id})
+        potion_id = connection.execute(sqlalchemy.text("SELECT id FROM potions WHERE sku = :sku"), {"sku": item_sku}).scalar_one()
+        connection.execute(sqlalchemy.text("INSERT INTO cart_items (item_sku , quantity, cart_id, potion_id) VALUES (:sku , :quantity, :cart_id, :potion_id)"), {"sku": item_sku, "quantity": cart_item.quantity, "cart_id": cart_id, "potion_id": potion_id})
 
 
     return "OK"
@@ -120,6 +121,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     num_potions = ""
     with db.engine.begin() as connection:
         quantity, item_sku = connection.execute(sqlalchemy.text("SELECT quantity, item_sku  FROM cart_items WHERE cart_id = :cart_id"), {"cart_id": cart_id}).first()
+        
         # how will I keep track of price?
         price =  connection.execute(sqlalchemy.text("SELECT price FROM catalog WHERE item_sku = :item_sku"), {"item_sku":item_sku }).scalar()
         if item_sku == "GREEN_POTION":

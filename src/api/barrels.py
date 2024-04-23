@@ -34,6 +34,10 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
             num_ml = "num_green_ml"
         elif barrel.potion_type[2] == 1:
             num_ml = "num_blue_ml"
+        elif barrel.potion_type[3] == 1:
+            num_ml = "num_dark_ml"
+        else:
+            raise Exception("Invalid potion type")
         
         if num_ml:
             with db.engine.begin() as connection:
@@ -64,6 +68,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             potions = "num_green_potions"
         elif barrel.potion_type[2] == 1:
             potions = "num_blue_potions"
+        elif barrel.potion_type[3] == 1:
+            potions = "num_dark_potions"
+        else:
+            raise Exception("Invalid potion type")
         
         if potions:
             with db.engine.begin() as connection:
@@ -71,7 +79,6 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                 potions = connection.execute(sqlalchemy.text(f"SELECT {potions} FROM global_inventory")).scalar()
                 gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
 
-                
             if potions < 10:
                 quantity = gold//barrel.price
                 while quantity > barrel.quantity:
