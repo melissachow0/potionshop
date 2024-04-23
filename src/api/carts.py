@@ -123,23 +123,24 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         quantity, item_sku = connection.execute(sqlalchemy.text("SELECT quantity, item_sku  FROM cart_items WHERE cart_id = :cart_id"), {"cart_id": cart_id}).first()
         
         # how will I keep track of price?
-        price =  connection.execute(sqlalchemy.text("SELECT price FROM catalog WHERE item_sku = :item_sku"), {"item_sku":item_sku }).scalar()
-        if item_sku == "GREEN_POTION":
-            num_potions = "num_green_potions"
-        elif item_sku == "BLUE_POTION":
-            num_potions = "num_blue_potions"
-        elif item_sku == "RED_POTION":
-            num_potions = "num_red_potions"
-        bottles = connection.execute(sqlalchemy.text(f"SELECT {num_potions} FROM global_inventory")).scalar()
-        if quantity <= bottles: 
-            bottles = bottles - quantity
-            connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET {num_potions} = :num"), {"num": bottles})
-            gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
-            gold = gold + (quantity * price) # would probably keep track of price based on sku?? 
-            connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = :gold"), {"gold": gold})
+        price, stock =  connection.execute(sqlalchemy.text("SELECT price, quantity FROM potions WHERE item_sku = :item_sku"), {"item_sku":item_sku }).scalar()
+
+        if quantity <= stock:
+            connection.execute(sqlalchemy.text (
+                    """
+                    UPDATE potions
+                    SET quantity = potions.quantity - :quantity
+                    WHERE potions.sku = :sku
+                    """
+                ), {"quantity": quantity, "sku": item_sku})
+            connection.execute(sqlalchemy.text (
+                    """
+                    UPDATE global_inventory
+                    SET gold = global_inventory.gold + :gold
+                    WHERE potions.sku = :sku
+                    """
+                ), {"goldy": (quantity * price), "sku": item_sku})
         else:
             quantity = 0
-
-
 
     return {"total_potions_bought": quantity, "total_gold_paid": (quantity * price)}
