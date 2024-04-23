@@ -13,36 +13,20 @@ def get_catalog():
     """
     Each unique item combination must have only a single price.
     """
+    count = 0
     with db.engine.begin() as connection:
-        green_potions = connection.execute(sqlalchemy.text("SELECT num_green_potions FROM global_inventory")).scalar_one()
-        blue_potions = connection.execute(sqlalchemy.text("SELECT num_blue_potions FROM global_inventory")).scalar_one()
-        red_potions = connection.execute(sqlalchemy.text("SELECT num_red_potions FROM global_inventory")).scalar_one()
-
+        potions = connection.execute(sqlalchemy.text("SELECT * FROM potions ORDER BY RANDOM()")).fetchall()
+       
 
     catalog = []
+    for potion in potions:
+        if count >= 6: #maximum of six items can be display
+            break
+        if potion.quantity > 0:
+            catalog.append({ "sku": potion.sku,
+                "name": potion.name,
+                "quantity": potion.quantity,
+                "price": potion.price,
+                "potion_type": [potion.red, potion.green , potion.blue, potion.dark],})
 
-    if green_potions > 0:
-        catalog.append(            {
-                "sku": "GREEN_POTION",
-                "name": "green potion",
-                "quantity": green_potions,
-                "price": 46,
-                "potion_type": [0, 100 , 0 , 0],
-            })
-    if blue_potions > 0:
-        catalog.append( {
-                "sku": "BLUE_POTION",
-                "name": "blue potion",
-                "quantity": blue_potions,
-                "price": 40,
-                "potion_type": [100, 0 , 0 , 0],
-            })
-    if red_potions > 0:
-            catalog.append( {
-                "sku": "RED_POTION",
-                "name": "red potion",
-                "quantity": red_potions,
-                "price": 45,
-                "potion_type": [0, 0 , 100 , 0],
-            })
     return catalog
