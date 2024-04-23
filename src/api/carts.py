@@ -118,12 +118,9 @@ class CartCheckout(BaseModel):
 @router.post("/{cart_id}/checkout")
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
-    num_potions = ""
     with db.engine.begin() as connection:
         quantity, item_sku = connection.execute(sqlalchemy.text("SELECT quantity, item_sku  FROM cart_items WHERE cart_id = :cart_id"), {"cart_id": cart_id}).first()
-        
-        # how will I keep track of price?
-        price, stock =  connection.execute(sqlalchemy.text("SELECT price, quantity FROM potions WHERE item_sku = :item_sku"), {"item_sku":item_sku }).scalar()
+        price, stock =  connection.execute(sqlalchemy.text("SELECT price, quantity FROM potions WHERE sku = :item_sku"), {"item_sku": item_sku }).first()
 
         if quantity <= stock:
             connection.execute(sqlalchemy.text (
@@ -137,9 +134,8 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                     """
                     UPDATE global_inventory
                     SET gold = global_inventory.gold + :gold
-                    WHERE potions.sku = :sku
                     """
-                ), {"goldy": (quantity * price), "sku": item_sku})
+                ), {"gold": (quantity * price)})
         else:
             quantity = 0
 
