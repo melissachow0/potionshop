@@ -118,6 +118,7 @@ class CartCheckout(BaseModel):
 @router.post("/{cart_id}/checkout")
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
+    # you need to loop through all the carts with that id
     with db.engine.begin() as connection:
         quantity, item_sku = connection.execute(sqlalchemy.text("SELECT quantity, item_sku  FROM cart_items WHERE cart_id = :cart_id"), {"cart_id": cart_id}).first()
         price, stock =  connection.execute(sqlalchemy.text("SELECT price, quantity FROM potions WHERE sku = :item_sku"), {"item_sku": item_sku }).first()
@@ -140,3 +141,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             quantity = 0
 
     return {"total_potions_bought": quantity, "total_gold_paid": (quantity * price)}
+
+# Have a table that saves potions that are bought on a certain day and then form those potions based on days.
+# So if its Monday sort potions by most popular sold on Monday and check if it can be made
+# Would you use ledger to keep track of days?

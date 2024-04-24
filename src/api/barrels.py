@@ -25,6 +25,8 @@ class Barrel(BaseModel):
 def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     """ """
     print(f"barrels delievered: {barrels_delivered} order_id: {order_id}")
+    #you can select a lot of items at once in one trip
+    # never do SELECT * (be specific)
   
     for barrel in barrels_delivered:
         num_ml = 0
@@ -57,9 +59,11 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
 @router.post("/plan")
 def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
+    #check this logic again
     print(wholesale_catalog)
     barrels = []
     
+    gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
     for barrel in wholesale_catalog:
         potions = 0
         if barrel.potion_type[0]== 1:
@@ -75,18 +79,15 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         
         if potions:
             with db.engine.begin() as connection:
-                
                 potions = connection.execute(sqlalchemy.text(f"SELECT {potions} FROM global_inventory")).scalar()
-                gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
 
-            if potions < 10:
-                quantity = gold//barrel.price
-                while quantity > barrel.quantity:
-                    quantity -= 1
-            else:
-                quantity = 0
-            if quantity > 0: 
-                barrels.append({"sku": barrel.sku, "quantity": quantity,})
+                if potions < 4:
+                    quantity = gold//barrel.price
+                    quantity = min(barrel.quantity, quantity)
+                    gold -= barrel.price * quantity
+                    barrels.append({"sku": barrel.sku, "quantity": quantity,})
+                    
+                    # should I check logic to see if I can afford it?
 
         return barrels
 

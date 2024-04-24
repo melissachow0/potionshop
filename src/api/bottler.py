@@ -73,6 +73,7 @@ def get_bottle_plan():
     # Initial logic: bottle all barrels into red potions.
 
     with db.engine.begin() as connection:
+             # use .first() and also gather all these in one single call
              green_ml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).scalar()
              blue_ml = connection.execute(sqlalchemy.text("SELECT num_blue_ml FROM global_inventory")).scalar()
              red_ml = connection.execute(sqlalchemy.text("SELECT num_red_ml FROM global_inventory")).scalar()
@@ -100,7 +101,7 @@ def get_bottle_plan():
                     "potion_type": [potion.red, potion.green, potion.blue, potion.dark],
                     "quantity": quantity,
                 } )
-    return potion_plan
+    return potion_plan #does it make sense to only offer as many as can be made or should the deliver potions focus on that logic
              
                  
             
