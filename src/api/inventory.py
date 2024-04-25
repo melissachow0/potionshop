@@ -16,8 +16,7 @@ def get_inventory():
     """ """
     with db.engine.begin() as connection:
         potions = connection.execute(sqlalchemy.text("SELECT * FROM potions WHERE quantity > 0")).fetchall()
-        total_ml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).scalar() 
-        + connection.execute(sqlalchemy.text("SELECT num_red_ml FROM global_inventory")).scalar() + connection.execute(sqlalchemy.text("SELECT num_blue_ml FROM global_inventory")).scalar()+connection.execute(sqlalchemy.text("SELECT num_dark_ml FROM global_inventory")).scalar()
+        total_ml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).scalar()  + connection.execute(sqlalchemy.text("SELECT num_red_ml FROM global_inventory")).scalar() + connection.execute(sqlalchemy.text("SELECT num_blue_ml FROM global_inventory")).scalar()+connection.execute(sqlalchemy.text("SELECT num_dark_ml FROM global_inventory")).scalar()
         gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
         gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
         total_potions = 0
