@@ -119,28 +119,34 @@ class CartCheckout(BaseModel):
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
     # you need to loop through all the carts with that id
+    total_paid = 0
+    total_potions = 0
     with db.engine.begin() as connection:
-        quantity, item_sku = connection.execute(sqlalchemy.text("SELECT quantity, item_sku  FROM cart_items WHERE cart_id = :cart_id"), {"cart_id": cart_id}).first()
-        price, stock =  connection.execute(sqlalchemy.text("SELECT price, quantity FROM potions WHERE sku = :item_sku"), {"item_sku": item_sku }).first()
+        rows = connection.execute(sqlalchemy.text("SELECT quantity, item_sku  FROM cart_items WHERE cart_id = :cart_id"), {"cart_id": cart_id}).fetchall()
+        for row in rows:
+            quantity, item_sku = row
+            price, stock =  connection.execute(sqlalchemy.text("SELECT price, quantity FROM potions WHERE sku = :item_sku"), {"item_sku": item_sku }).first()
 
-        if quantity <= stock:
-            connection.execute(sqlalchemy.text (
-                    """
-                    UPDATE potions
-                    SET quantity = potions.quantity - :quantity
-                    WHERE potions.sku = :sku
-                    """
-                ), {"quantity": quantity, "sku": item_sku})
-            connection.execute(sqlalchemy.text (
-                    """
-                    UPDATE global_inventory
-                    SET gold = global_inventory.gold + :gold
-                    """
-                ), {"gold": (quantity * price)})
-        else:
-            quantity = 0
+            if quantity <= stock:
+                total_potions += quantity
+                total_paid += (quantity * price)
+                connection.execute(sqlalchemy.text (
+                        """
+                        UPDATE potions
+                        SET quantity = potions.quantity - :quantity
+                        WHERE potions.sku = :sku
+                        """
+                    ), {"quantity": quantity, "sku": item_sku})
+                connection.execute(sqlalchemy.text (
+                        """
+                        UPDATE global_inventory
+                        SET gold = global_inventory.gold + :gold
+                        """
+                    ), {"gold": (quantity * price)})
+            else:
+                quantity = 0
 
-    return {"total_potions_bought": quantity, "total_gold_paid": (quantity * price)}
+    return {"total_potions_bought": total_potions, "total_gold_paid": total_paid}
 
 # Have a table that saves potions that are bought on a certain day and then form those potions based on days.
 # So if its Monday sort potions by most popular sold on Monday and check if it can be made
