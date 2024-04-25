@@ -63,30 +63,30 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     print(wholesale_catalog)
     barrels = []
     
-    gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
+    with db.engine.begin() as connection:
+        gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
  
-    for barrel in wholesale_catalog:
-        potions = 0
-        if barrel.potion_type[0]== 1:
-            potions = "num_red_potions"
-        elif barrel.potion_type[1] == 1:
-            potions = "num_green_potions"
-        elif barrel.potion_type[2] == 1:
-            potions = "num_blue_potions"
-        elif barrel.potion_type[3] == 1:
-            potions = "num_dark_potions"
-        else:
-            raise Exception("Invalid potion type")
-        
-        if potions:
-            with db.engine.begin() as connection:
-                potions = connection.execute(sqlalchemy.text(f"SELECT {potions} FROM global_inventory")).scalar()
+        for barrel in wholesale_catalog:
+            potions = 0
+            if barrel.potion_type[0]== 1:
+                potions = "num_red_potions"
+            elif barrel.potion_type[1] == 1:
+                potions = "num_green_potions"
+            elif barrel.potion_type[2] == 1:
+                potions = "num_blue_potions"
+            elif barrel.potion_type[3] == 1:
+                potions = "num_dark_potions"
+            else:
+                raise Exception("Invalid potion type")
+            
+            if potions:
+                    potions = connection.execute(sqlalchemy.text(f"SELECT {potions} FROM global_inventory")).scalar()
 
-                if potions < 5:
-                    # minimum between how much they offer, how much you can afford and 2
-                    quantity = min(barrel.quantity, 2, gold//barrel.price) # will always be equal or less than 2
-                    gold -= barrel.price * quantity
-                    barrels.append({"sku": barrel.sku, "quantity": quantity,})
+                    if potions < 5:
+                        # minimum between how much they offer, how much you can afford and 2
+                        quantity = min(barrel.quantity, 2, gold//barrel.price) # will always be equal or less than 2
+                        gold -= barrel.price * quantity
+                        barrels.append({"sku": barrel.sku, "quantity": quantity,})
 
     return barrels
 
