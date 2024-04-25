@@ -95,7 +95,8 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         # minimum between how much they offer, how much you can afford and 2
                         quantity = min(barrel.quantity, 2, gold//barrel.price) # will always be equal or less than 2
                         gold -= barrel.price * quantity
-                        barrels.append({"sku": barrel.sku, "quantity": quantity,})
+                        if quantity > 0:
+                            barrels.append({"sku": barrel.sku, "quantity": quantity,})
 
     return barrels
 
