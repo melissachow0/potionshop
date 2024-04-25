@@ -83,11 +83,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                 potions = connection.execute(sqlalchemy.text(f"SELECT {potions} FROM global_inventory")).scalar()
 
                 if potions < 5:
-                    quantity = min(barrel.quantity, 2, gold//barrel.price)
+                    # minimum between how much they offer, how much you can afford and 2
+                    quantity = min(barrel.quantity, 2, gold//barrel.price) # will always be equal or less than 2
                     gold -= barrel.price * quantity
                     barrels.append({"sku": barrel.sku, "quantity": quantity,})
-                    
-                    # should I check logic to see if I can afford it?
 
     return barrels
 
