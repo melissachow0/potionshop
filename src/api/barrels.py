@@ -53,7 +53,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
             
             if num_ml:
                     ml = connection.execute(sqlalchemy.text(f"SELECT {num_ml} FROM global_inventory")).scalar()
-                    ml = barrel.ml_per_barrel + ml
+                    ml += (barrel.ml_per_barrel * barrel.quantity)
                     connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET {num_ml} = :ml"), { "ml": ml})
                     gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
                     gold = gold - barrel.price
