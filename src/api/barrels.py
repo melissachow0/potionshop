@@ -52,7 +52,6 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
                 raise Exception("Invalid potion type")
             
             if num_ml:
-                with db.engine.begin() as connection:
                     ml = connection.execute(sqlalchemy.text(f"SELECT {num_ml} FROM global_inventory")).scalar()
                     ml = barrel.ml_per_barrel + ml
                     connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET {num_ml} = :ml"), { "ml": ml})
@@ -61,7 +60,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
                     connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = :gold"), {"gold": gold})
                 
 
-    connection.commit()
+        connection.commit()
 
     return "OK"
 
