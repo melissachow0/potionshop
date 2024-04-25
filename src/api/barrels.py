@@ -1,3 +1,4 @@
+from sqlite3 import IntegrityError
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from src.api import auth
@@ -27,31 +28,40 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     print(f"barrels delievered: {barrels_delivered} order_id: {order_id}")
     #you can select a lot of items at once in one trip
     # never do SELECT * (be specific)
-  
-    for barrel in barrels_delivered:
-        num_ml = 0
-        if barrel.potion_type[0]== 1:
-            num_ml = "num_red_ml"
-        elif barrel.potion_type[1] == 1:
-            num_ml = "num_green_ml"
-        elif barrel.potion_type[2] == 1:
-            num_ml = "num_blue_ml"
-        elif barrel.potion_type[3] == 1:
-            num_ml = "num_dark_ml"
-        else:
-            raise Exception("Invalid potion type")
-        
-        if num_ml:
-            with db.engine.begin() as connection:
-                ml = connection.execute(sqlalchemy.text(f"SELECT {num_ml} FROM global_inventory")).scalar()
-                ml = barrel.ml_per_barrel + ml
-                connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET {num_ml} = :ml"), { "ml": ml})
-                gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
-                gold = gold - barrel.price
-                connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = :gold"), {"gold": gold})
-            
+    with db.engine.begin() as connection:
+        try:
+            for barrel in barrels_delivered:
+                connection.execute(sqlalchemy.text("INSERT INTO barrels (order_id, sku, ml_per_barrel, price, quantity) VALUES (:order_id, :sku, :ml_per_barrel, :price, :quantity)"), 
+                [{"order_id": order_id, "sku": barrel.sku, "ml_per_barrel": barrel.ml_per_barrel, "price": barrel.price, "quantity": barrel.quantity}])
+        except IntegrityError as e:
+            return "OK"
 
-            connection.commit()
+
+    
+        for barrel in barrels_delivered:
+            num_ml = 0
+            if barrel.potion_type[0]== 1:
+                num_ml = "num_red_ml"
+            elif barrel.potion_type[1] == 1:
+                num_ml = "num_green_ml"
+            elif barrel.potion_type[2] == 1:
+                num_ml = "num_blue_ml"
+            elif barrel.potion_type[3] == 1:
+                num_ml = "num_dark_ml"
+            else:
+                raise Exception("Invalid potion type")
+            
+            if num_ml:
+                with db.engine.begin() as connection:
+                    ml = connection.execute(sqlalchemy.text(f"SELECT {num_ml} FROM global_inventory")).scalar()
+                    ml = barrel.ml_per_barrel + ml
+                    connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET {num_ml} = :ml"), { "ml": ml})
+                    gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
+                    gold = gold - barrel.price
+                    connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = :gold"), {"gold": gold})
+                
+
+    connection.commit()
 
     return "OK"
 
