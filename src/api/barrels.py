@@ -64,6 +64,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     barrels = []
     
     gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
+ 
     for barrel in wholesale_catalog:
         potions = 0
         if barrel.potion_type[0]== 1:
@@ -81,13 +82,12 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             with db.engine.begin() as connection:
                 potions = connection.execute(sqlalchemy.text(f"SELECT {potions} FROM global_inventory")).scalar()
 
-                if potions < 4:
-                    quantity = gold//barrel.price
-                    quantity = min(barrel.quantity, quantity)
+                if potions < 5:
+                    quantity = min(barrel.quantity, 2, gold//barrel.price)
                     gold -= barrel.price * quantity
                     barrels.append({"sku": barrel.sku, "quantity": quantity,})
                     
                     # should I check logic to see if I can afford it?
 
-        return barrels
+    return barrels
 
