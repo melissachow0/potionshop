@@ -76,20 +76,20 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
  
         for barrel in wholesale_catalog:
-            potions = 0
+            sku = 0
             if barrel.potion_type[0]== 1:
-                potions = "num_red_potions"
+                sku = "RED_POTION"
             elif barrel.potion_type[1] == 1:
-                potions = "num_green_potions"
+                sku = "GREEN_POTION"
             elif barrel.potion_type[2] == 1:
-                potions = "num_blue_potions"
+                sku = "BLUE_POTION"
             elif barrel.potion_type[3] == 1:
-                potions = "num_dark_potions"
+                sku = "BLACK_POTION"
             else:
                 raise Exception("Invalid potion type")
             
-            if potions:
-                    potions = connection.execute(sqlalchemy.text(f"SELECT {potions} FROM global_inventory")).scalar()
+            if sku:
+                    potions = connection.execute(sqlalchemy.text("SELECT quantity FROM potions WHERE sku =:sku "),{"sku": sku}).scalar()
 
                     if potions < 5:
                         # minimum between how much they offer, how much you can afford and 2
