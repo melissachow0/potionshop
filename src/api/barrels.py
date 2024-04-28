@@ -68,6 +68,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
 @router.post("/plan")
 def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
+    #have to add logic for capacity
     #check this logic again
     print(wholesale_catalog)
     barrels = []
@@ -93,7 +94,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
                     if potions < 5:
                         # minimum between how much they offer, how much you can afford and 2
-                        quantity = min(barrel.quantity, 2, gold//barrel.price) # will always be equal or less than 2
+                        quantity = min(barrel.quantity, 1, gold//barrel.price) # will always be equal or less than 1
                         gold -= barrel.price * quantity
                         if quantity > 0:
                             barrels.append({"sku": barrel.sku, "quantity": quantity,})

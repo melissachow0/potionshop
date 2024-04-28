@@ -118,7 +118,7 @@ class CartCheckout(BaseModel):
 @router.post("/{cart_id}/checkout")
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
-    # you need to loop through all the carts with that id
+    # you need to add checkout logic
     total_paid = 0
     total_potions = 0
     with db.engine.begin() as connection:

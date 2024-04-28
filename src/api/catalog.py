@@ -23,6 +23,7 @@ def get_catalog():
         if count >= 6: #maximum of six items can be display
             break
         if potion.quantity > 0:
+            count += 1
             catalog.append({ "sku": potion.sku,
                 "name": potion.name,
                 "quantity": potion.quantity,
