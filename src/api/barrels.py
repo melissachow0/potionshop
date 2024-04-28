@@ -78,24 +78,58 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         ml_capacity = connection.execute(sqlalchemy.text("SELECT ml_capacity FROM capacity")).scalar()
         ml_capacity = ml_capacity * 10000
         gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
-    
+
+        #this code should prioritize buying medium barrels in order to bring price down
+
         for barrel in wholesale_catalog:
             sku = 0
             if barrel.potion_type[0]== 1:
                 sku = "RED_POTION"
+                barrel_sku = "MEDIUM_RED_BARREL"
             elif barrel.potion_type[1] == 1:
                 sku = "GREEN_POTION"
+                barrel_sku = "MEDIUM_GREEN_BARREL"
             elif barrel.potion_type[2] == 1:
                 sku = "BLUE_POTION"
+                barrel_sku = "MEDIUM_BLUE_BARREL"
             elif barrel.potion_type[3] == 1:
                 sku = "BLACK_POTION"
+                barrel_sku = "MEDIUM_DARK_BARREL"
             else:
                 raise Exception("Invalid potion type")
             
             if sku:
                     potions = connection.execute(sqlalchemy.text("SELECT quantity FROM potions WHERE sku =:sku "),{"sku": sku}).scalar()
 
-                    if potions < 5:
+                    if potions < 5 and barrel.sku == barrel_sku:
+                        # minimum between how much they offer, how much you can afford and 2
+                        quantity = min(barrel.quantity, 1, gold//barrel.price) # will always be equal or less than 1
+                        gold -= barrel.price * quantity
+                        if quantity > 0 and (total_ml + quantity * barrel.ml_per_barrel) < ml_capacity:
+                            barrels.append({"sku": barrel.sku, "quantity": quantity,})
+                            total_ml += (quantity * barrel.ml_per_barrel)
+    
+        for barrel in wholesale_catalog:
+            sku = 0
+            if barrel.potion_type[0]== 1:
+                sku = "RED_POTION"
+                barrel_sku = "MEDIUM_RED_BARREL"
+            elif barrel.potion_type[1] == 1:
+                sku = "GREEN_POTION"
+                barrel_sku = "MEDIUM_GREEN_BARREL"
+            elif barrel.potion_type[2] == 1:
+                sku = "BLUE_POTION"
+                barrel_sku = "MEDIUM_BLUE_BARREL"
+            elif barrel.potion_type[3] == 1:
+                sku = "BLACK_POTION"
+                barrel_sku = "MEDIUM_DARK_BARREL"
+            else:
+                raise Exception("Invalid potion type")
+            
+            if sku:
+                    potions = connection.execute(sqlalchemy.text("SELECT quantity FROM potions WHERE sku =:sku "),{"sku": sku}).scalar()
+
+                    if potions < 5 and barrel.sku != barrel_sku:
                         # minimum between how much they offer, how much you can afford and 2
                         quantity = min(barrel.quantity, 1, gold//barrel.price) # will always be equal or less than 1
                         gold -= barrel.price * quantity
