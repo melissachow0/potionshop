@@ -86,8 +86,8 @@ def deliver_capacity_plan(capacity_purchase : CapacityPurchase, order_id: int):
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - :paid"), {"paid": paid})
         connection.execute(sqlalchemy.text("""UPDATE capacity SET 
-                                           ml_capacity = ml_capacity - :ml_bought,
-                                           potion_capacity = potion_capacity - :potions_bought"""), [{"ml_bought":  capacity_purchase.ml_capacity, "potions_bought": capacity_purchase.potion_capacity}])
+                                           ml_capacity = ml_capacity + :ml_bought,
+                                           potion_capacity = potion_capacity + :potions_bought"""), [{"ml_bought":  capacity_purchase.ml_capacity, "potions_bought": capacity_purchase.potion_capacity}])
 
 
     return "OK"
