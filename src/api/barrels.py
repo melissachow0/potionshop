@@ -74,6 +74,9 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     barrels = []
     
     with db.engine.begin() as connection:
+        total_ml = connection.execute(sqlalchemy.text("SELECT SUM(num_green_ml + num_red_ml + num_blue_ml + num_dark_ml) FROM global_inventory")).scalar()
+        ml_capacity = connection.execute(sqlalchemy.text("SELECT ml_capacity FROM capacity")).scalar()
+        ml_capacity = ml_capacity * 10000
         gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
     
         for barrel in wholesale_catalog:
@@ -96,8 +99,9 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         # minimum between how much they offer, how much you can afford and 2
                         quantity = min(barrel.quantity, 1, gold//barrel.price) # will always be equal or less than 1
                         gold -= barrel.price * quantity
-                        if quantity > 0:
+                        if quantity > 0 and (total_ml + quantity * barrel.ml_per_barrel) < ml_capacity:
                             barrels.append({"sku": barrel.sku, "quantity": quantity,})
+                            total_ml += (quantity * barrel.ml_per_barrel)
 
     return barrels
 
