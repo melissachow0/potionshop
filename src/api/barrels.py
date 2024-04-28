@@ -74,7 +74,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     
     with db.engine.begin() as connection:
         gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
- 
+    
         for barrel in wholesale_catalog:
             sku = 0
             if barrel.potion_type[0]== 1:

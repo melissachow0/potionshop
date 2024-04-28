@@ -73,6 +73,14 @@ def get_bottle_plan():
     # Initial logic: bottle all barrels into red potions.
 
     with db.engine.begin() as connection:
+             total_potions = connection.execute(sqlalchemy.text( """
+                SELECT SUM(quantity) 
+                FROM potions 
+                WHERE quantity > 0
+                """
+            )).scalar() 
+             potion_capacity = connection.execute(sqlalchemy.text("SELECT potion_capacity FROM capacity")).scalar()
+             potion_capacity = potion_capacity * 50
              # use .first() and also gather all these in one single call
              green_ml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).scalar()
              blue_ml = connection.execute(sqlalchemy.text("SELECT num_blue_ml FROM global_inventory")).scalar()
@@ -92,7 +100,7 @@ def get_bottle_plan():
         if potion.dark > 0:
             colors.append(dark_ml//potion.dark)
         quantity = min(colors)
-        if quantity > 0:
+        if quantity > 0 and (quantity + total_potions) < potion_capacity:
             red_ml -= (potion.red * quantity)
             blue_ml -= (potion.blue * quantity)
             green_ml -= (potion.green * quantity)
