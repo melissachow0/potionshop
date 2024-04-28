@@ -76,7 +76,6 @@ def get_bottle_plan():
              total_potions = connection.execute(sqlalchemy.text( """
                 SELECT SUM(quantity) 
                 FROM potions 
-                WHERE quantity > 0
                 """
             )).scalar() 
              potion_capacity = connection.execute(sqlalchemy.text("SELECT potion_capacity FROM capacity")).scalar()
