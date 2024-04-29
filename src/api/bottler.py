@@ -99,7 +99,7 @@ def get_bottle_plan():
         if potion.dark > 0:
             colors.append(dark_ml//potion.dark)
         quantity = min(colors)
-        if quantity > 0 :
+        if quantity > 0 and total_potions != potion_capacity:
             if (quantity + total_potions) < potion_capacity:
                 red_ml -= (potion.red * quantity)
                 blue_ml -= (potion.blue * quantity)
@@ -109,11 +109,13 @@ def get_bottle_plan():
                         "potion_type": [potion.red, potion.green, potion.blue, potion.dark],
                         "quantity": quantity,
                     } )
+                total_potions += quantity
             else:
                 potion_plan.append({
                         "potion_type": [potion.red, potion.green, potion.blue, potion.dark],
                         "quantity": potion_capacity - total_potions,
                     } )
+                total_potions = potion_capacity
                 
     return potion_plan #does it make sense to only offer as many as can be made or should the deliver potions focus on that logic
              

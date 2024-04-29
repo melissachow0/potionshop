@@ -102,7 +102,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     potions = connection.execute(sqlalchemy.text("SELECT quantity FROM potions WHERE sku =:sku "),{"sku": sku}).scalar()
 
                     if potions < 5 and barrel.sku == barrel_sku:
-                        # minimum between how much they offer, how much you can afford and 2
+                        # minimum between how much they offer, how much you can afford and 1
                         quantity = min(barrel.quantity, 1, gold//barrel.price) # will always be equal or less than 1
                         gold -= barrel.price * quantity
                         if quantity > 0 and (total_ml + quantity * barrel.ml_per_barrel) < ml_capacity:
@@ -130,7 +130,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     potions = connection.execute(sqlalchemy.text("SELECT quantity FROM potions WHERE sku =:sku "),{"sku": sku}).scalar()
 
                     if potions < 5 and barrel.sku != barrel_sku:
-                        # minimum between how much they offer, how much you can afford and 2
+                        # minimum between how much they offer, how much you can afford and 1
                         quantity = min(barrel.quantity, 1, gold//barrel.price) # will always be equal or less than 1
                         gold -= barrel.price * quantity
                         if quantity > 0 and (total_ml + quantity * barrel.ml_per_barrel) < ml_capacity:
