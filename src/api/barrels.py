@@ -91,6 +91,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         ml_capacity = connection.execute(sqlalchemy.text("SELECT ml_capacity FROM capacity")).scalar()
         ml_capacity = ml_capacity * 10000
         gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
+        min_quantity = max(gold//1000, 1)
 
         #this code should prioritize buying medium barrels in order to bring price down
 
@@ -116,7 +117,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
                     if potions < 5 and barrel.sku == barrel_sku:
                         # minimum between how much they offer, how much you can afford and 1
-                        quantity = min(barrel.quantity, 1, gold//barrel.price) # will always be equal or less than 1
+                        quantity = min(barrel.quantity, min_quantity, gold//barrel.price) # will always be equal or less than 1
                         gold -= barrel.price * quantity
                         if quantity > 0 and (total_ml + quantity * barrel.ml_per_barrel) < ml_capacity:
                             barrels.append({"sku": barrel.sku, "quantity": quantity,})
@@ -144,7 +145,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
                     if potions < 5 and barrel.sku != barrel_sku:
                         # minimum between how much they offer, how much you can afford and 1
-                        quantity = min(barrel.quantity, 1, gold//barrel.price) # will always be equal or less than 1
+                        quantity = min(barrel.quantity, min_quantity, gold//barrel.price) # will always be equal or less than 
                         gold -= barrel.price * quantity
                         if quantity > 0 and (total_ml + quantity * barrel.ml_per_barrel) < ml_capacity:
                             barrels.append({"sku": barrel.sku, "quantity": quantity,})

@@ -125,7 +125,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         rows = connection.execute(sqlalchemy.text("SELECT quantity, item_sku  FROM cart_items WHERE cart_id = :cart_id"), {"cart_id": cart_id}).fetchall()
         for row in rows:
             quantity, item_sku = row
-            price, stock =  connection.execute(sqlalchemy.text("SELECT price, quantity FROM potions WHERE sku = :item_sku"), {"item_sku": item_sku }).first()
+            price, stock, red, green, blue, dark=  connection.execute(sqlalchemy.text("SELECT price, quantity, red, green, blue, dark FROM potions WHERE sku = :item_sku"), {"item_sku": item_sku }).first()
 
             if quantity <= stock:
                 total_potions += quantity
@@ -143,6 +143,11 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                         SET gold = global_inventory.gold + :gold
                         """
                     ), {"gold": (quantity * price)})
+                connection.execute(sqlalchemy.text("INSERT INTO potions_ledger (change, red, green,blue, black ) VALUES (:change, :red, :green, :blue, :black)"), 
+                    [{"change": -quantity, "red": red, "green": green, "blue":blue, "black": dark }])
+                connection.execute(sqlalchemy.text("INSERT INTO gold_ledger (change) VALUES (:change)"), 
+                    [{"change":  quantity * price }])
+
             else:
                 quantity = 0
 
