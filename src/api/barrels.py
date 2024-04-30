@@ -38,14 +38,23 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
 
         for barrel in barrels_delivered:
             num_ml = 0
+            change_red = 0
+            change_green = 0
+            change_blue = 0
+            change_black = 0
+
             if barrel.potion_type[0]== 1:
                 num_ml = "num_red_ml"
+                change_red = barrel.ml_per_barrel * barrel.quantity
             elif barrel.potion_type[1] == 1:
                 num_ml = "num_green_ml"
+                change_green = barrel.ml_per_barrel * barrel.quantity
             elif barrel.potion_type[2] == 1:
                 num_ml = "num_blue_ml"
+                change_blue = barrel.ml_per_barrel * barrel.quantity
             elif barrel.potion_type[3] == 1:
                 num_ml = "num_dark_ml"
+                change_black = barrel.ml_per_barrel * barrel.quantity
             else:
                 raise Exception("Invalid potion type")
             
@@ -56,6 +65,12 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
                     gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
                     gold -= (barrel.price * barrel.quantity)
                     connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = :gold"), {"gold": gold})
+                    connection.execute(sqlalchemy.text("INSERT INTO gold_ledger (change) VALUES (:change)"), 
+                    [{"change": - (barrel.price * barrel.quantity) }])
+                    connection.execute(sqlalchemy.text("INSERT INTO ml_ledger (change_red, change_green, change_blue, change_black ) VALUES (:change_red, :change_green, :change_blue, :change_black)"), 
+                    [{"change_red": change_red, "change_green": change_green, "change_blue": change_blue, "change_black": change_black }])
+
+
                 
 
         connection.commit()
