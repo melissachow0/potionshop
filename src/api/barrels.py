@@ -31,13 +31,11 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     with db.engine.begin() as connection:
         try:
             for barrel in barrels_delivered:
-                connection.execute(sqlalchemy.text("INSERT INTO barrels (order_id, sku, ml_per_barrel, price, quantity) VALUES (:order_id, :sku, :ml_per_barrel, :price, :quantity)"), 
-                [{"order_id": order_id, "sku": barrel.sku, "ml_per_barrel": barrel.ml_per_barrel, "price": barrel.price, "quantity": barrel.quantity}])
+                connection.execute(sqlalchemy.text("INSERT INTO barrels (order_id, sku, ml_per_barrel, price, quantity, price_per_unit) VALUES (:order_id, :sku, :ml_per_barrel, :price, :quantity, :unit)"), 
+                [{"order_id": order_id, "sku": barrel.sku, "ml_per_barrel": barrel.ml_per_barrel, "price": barrel.price, "quantity": barrel.quantity, "unit": barrel.price/barrel.ml_per_barrel}])
         except IntegrityError as e:
             return "OK"
 
-
-    
         for barrel in barrels_delivered:
             num_ml = 0
             if barrel.potion_type[0]== 1:
