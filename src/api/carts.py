@@ -119,6 +119,7 @@ class CartCheckout(BaseModel):
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
     # you need to add checkout logic
+    day = "Blesseday"
     total_paid = 0
     total_potions = 0
     with db.engine.begin() as connection:
@@ -130,23 +131,23 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             if quantity <= stock:
                 total_potions += quantity
                 total_paid += (quantity * price)
-                connection.execute(sqlalchemy.text (
-                        """
-                        UPDATE potions
-                        SET quantity = potions.quantity - :quantity
-                        WHERE potions.sku = :sku
-                        """
-                    ), {"quantity": quantity, "sku": item_sku})
-                connection.execute(sqlalchemy.text (
-                        """
-                        UPDATE global_inventory
-                        SET gold = global_inventory.gold + :gold
-                        """
-                    ), {"gold": (quantity * price)})
-                connection.execute(sqlalchemy.text("INSERT INTO potions_ledger (change, red, green,blue, black ) VALUES (:change, :red, :green, :blue, :black)"), 
-                    [{"change": -quantity, "red": red, "green": green, "blue":blue, "black": dark }])
-                connection.execute(sqlalchemy.text("INSERT INTO gold_ledger (change) VALUES (:change)"), 
-                    [{"change":  quantity * price }])
+                # connection.execute(sqlalchemy.text (
+                #         """
+                #         UPDATE potions
+                #         SET quantity = potions.quantity - :quantity
+                #         WHERE potions.sku = :sku
+                #         """
+                #     ), {"quantity": quantity, "sku": item_sku})
+                # connection.execute(sqlalchemy.text (
+                #         """
+                #         UPDATE global_inventory
+                #         SET gold = global_inventory.gold + :gold
+                #         """
+                #     ), {"gold": (quantity * price)})
+                connection.execute(sqlalchemy.text("INSERT INTO potions_ledger (change, red, green,blue, black, day) VALUES (:change, :red, :green, :blue, :black, :day)"), 
+                    [{"change": -quantity, "red": red, "green": green, "blue":blue, "black": dark, "day": day }])
+                # connection.execute(sqlalchemy.text("INSERT INTO gold_ledger (change) VALUES (:change)"), 
+                #     [{"change":  quantity * price }])
 
             else:
                 quantity = 0
