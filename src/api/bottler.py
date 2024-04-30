@@ -44,6 +44,10 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
                 """
             ), {"quantity": potion.quantity, "red": potion.potion_type[0], "green": potion.potion_type[1], "blue": potion.potion_type[2], "dark": potion.potion_type[3]})
 
+            connection.execute(sqlalchemy.text("INSERT INTO potions_ledger (change, red, green,blue, black ) VALUES (:change, :red, :green, :blue, :black)"), 
+                    [{"change": potion.quantity, "red": potion.potion_type[0], "green": potion.potion_type[1], "blue":potion.potion_type[2], "black": potion.potion_type[3] }])
+
+
     
         connection.execute(sqlalchemy.text(
             """
@@ -54,6 +58,9 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
                 num_dark_ml = num_dark_ml - :dark_ml
             """
         ), [{"red_ml": red_ml, "green_ml": green_ml, "blue_ml": blue_ml, "dark_ml": dark_ml}])
+        connection.execute(sqlalchemy.text("INSERT INTO ml_ledger (change_red, change_green, change_blue, change_black ) VALUES (:change_red, :change_green, :change_blue, :change_black)"), 
+                    [{"change_red": -red_ml, "change_green":- green_ml, "change_blue": -blue_ml, "change_black": -dark_ml }])
+
    
 
     print(f"potions delivered: {potions_delivered} order_id: {order_id}")
