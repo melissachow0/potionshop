@@ -72,12 +72,12 @@ def get_capacity_plan():
             potion_threshold = total_potions/potion_capacity
 
     
-            #if potion_threshold > .8:
-            potion_quantity = 1
-            connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - 1000"))
-            # elif ml_threshold > .8:
-            #     ml_quantity = 1
-            #     connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - 1000"))
+            if potion_threshold > .8:
+                potion_quantity = 1
+                connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - 1000"))
+            elif ml_threshold > .8:
+                ml_quantity = 1
+                connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - 1000"))
         
 
         
