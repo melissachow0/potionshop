@@ -94,7 +94,7 @@ def get_bottle_plan():
              blue_ml = connection.execute(sqlalchemy.text("SELECT num_blue_ml FROM global_inventory")).scalar()
              red_ml = connection.execute(sqlalchemy.text("SELECT num_red_ml FROM global_inventory")).scalar()
              dark_ml = connection.execute(sqlalchemy.text("SELECT num_dark_ml FROM global_inventory")).scalar()
-             potions = connection.execute(sqlalchemy.text("SELECT * FROM potions ORDER BY RANDOM()")).fetchall()
+             potions = connection.execute(sqlalchemy.text("SELECT * FROM potions WHERE quantity < max_quantity ORDER BY RANDOM()")).fetchall()
              total_ml = connection.execute(sqlalchemy.text( """
                SELECT SUM(change_red + change_green + change_blue + change_black) 
                 FROM ml_ledger
