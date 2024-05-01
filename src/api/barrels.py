@@ -81,9 +81,10 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
 @router.post("/plan")
 def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
+    sorted_barrels = sorted(wholesale_catalog, key=lambda x: x.ml_per_barrel,reverse=True)
     #have to add logic for capacity
     #check this logic again
-    print(wholesale_catalog)
+    print(sorted_barrels)
     barrels = []
     
     with db.engine.begin() as connection:
@@ -91,65 +92,40 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         ml_capacity = connection.execute(sqlalchemy.text("SELECT ml_capacity FROM capacity")).scalar()
         ml_capacity = ml_capacity * 10000
         gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
+        potion_capacity = connection.execute(sqlalchemy.text("SELECT potion_capacity FROM capacity")).scalar()
+        potion_capacity = potion_capacity * 50
         min_quantity = max(gold//1000, 1)
 
         #this code should prioritize buying medium barrels in order to bring price down
 
-        for barrel in wholesale_catalog:
+        for barrel in sorted_barrels:
             sku = 0
             if barrel.potion_type[0]== 1:
                 sku = "RED_POTION"
-                barrel_sku = "MEDIUM_RED_BARREL"
+    
             elif barrel.potion_type[1] == 1:
                 sku = "GREEN_POTION"
-                barrel_sku = "MEDIUM_GREEN_BARREL"
+            
             elif barrel.potion_type[2] == 1:
                 sku = "BLUE_POTION"
-                barrel_sku = "MEDIUM_BLUE_BARREL"
+           
             elif barrel.potion_type[3] == 1:
                 sku = "BLACK_POTION"
-                barrel_sku = "MEDIUM_DARK_BARREL"
+     
             else:
                 raise Exception("Invalid potion type")
             
             if sku:
                     potions = connection.execute(sqlalchemy.text("SELECT quantity FROM potions WHERE sku =:sku "),{"sku": sku}).scalar()
 
-                    if potions < 5 and barrel.sku == barrel_sku:
+                    if potions < (potion_capacity//4):
                         # minimum between how much they offer, how much you can afford and 1
                         quantity = min(barrel.quantity, min_quantity, gold//barrel.price) # will always be equal or less than 1
                         gold -= barrel.price * quantity
                         if quantity > 0 and (total_ml + quantity * barrel.ml_per_barrel) < ml_capacity:
                             barrels.append({"sku": barrel.sku, "quantity": quantity,})
                             total_ml += (quantity * barrel.ml_per_barrel)
-    
-        for barrel in wholesale_catalog:
-            sku = 0
-            if barrel.potion_type[0]== 1:
-                sku = "RED_POTION"
-                barrel_sku = "MEDIUM_RED_BARREL"
-            elif barrel.potion_type[1] == 1:
-                sku = "GREEN_POTION"
-                barrel_sku = "MEDIUM_GREEN_BARREL"
-            elif barrel.potion_type[2] == 1:
-                sku = "BLUE_POTION"
-                barrel_sku = "MEDIUM_BLUE_BARREL"
-            elif barrel.potion_type[3] == 1:
-                sku = "BLACK_POTION"
-                barrel_sku = "MEDIUM_DARK_BARREL"
-            else:
-                raise Exception("Invalid potion type")
-            
-            if sku:
-                    potions = connection.execute(sqlalchemy.text("SELECT quantity FROM potions WHERE sku =:sku "),{"sku": sku}).scalar()
 
-                    if potions < 5 and barrel.sku != barrel_sku:
-                        # minimum between how much they offer, how much you can afford and 1
-                        quantity = min(barrel.quantity, min_quantity, gold//barrel.price) # will always be equal or less than 
-                        gold -= barrel.price * quantity
-                        if quantity > 0 and (total_ml + quantity * barrel.ml_per_barrel) < ml_capacity:
-                            barrels.append({"sku": barrel.sku, "quantity": quantity,})
-                            total_ml += (quantity * barrel.ml_per_barrel)
 
     return barrels
 
