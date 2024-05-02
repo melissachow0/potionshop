@@ -94,7 +94,8 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
         potion_capacity = connection.execute(sqlalchemy.text("SELECT potion_capacity FROM capacity")).scalar()
         potion_capacity = potion_capacity * 50
-        min_quantity = max(gold//1000, 1)
+        biggest_barrel = sorted_barrels[0].price * 4
+        min_quantity = max(gold//biggest_barrel, 1)
 
         #this code should prioritize buying medium barrels in order to bring price down
 
