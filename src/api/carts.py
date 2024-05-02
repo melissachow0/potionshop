@@ -90,7 +90,8 @@ def post_visits(visit_id: int, customers: list[Customer]):
 def create_cart(new_cart: Customer):
     """ """
     with db.engine.begin() as connection:
-        cart_id = connection.execute(sqlalchemy.text("INSERT INTO carts (customer) VALUES (:customer_name) RETURNING id"), {"customer_name": new_cart.customer_name}).scalar_one()
+        customer_id = connection.execute(sqlalchemy.text("INSERT INTO customers (name, class, level) VALUES (:name, :class, :level) RETURNING id"), {"name": new_cart.customer_name, "class": new_cart.character_class, "level": new_cart.level}).scalar_one()
+        cart_id = connection.execute(sqlalchemy.text("INSERT INTO carts (customer, checked_out, customer_id) VALUES (:customer_name, :checked_out, :customer_id) RETURNING id"), {"customer_name": new_cart.customer_name, "checked_out": False, "customer_id": customer_id}).scalar_one()
 
     return {"cart_id": cart_id}
 
@@ -148,6 +149,13 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                     [{"change": -quantity, "red": red, "green": green, "blue":blue, "black": dark, "day": day }])
                 connection.execute(sqlalchemy.text("INSERT INTO gold_ledger (change) VALUES (:change)"), 
                     [{"change":  quantity * price }])
+                connection.execute(sqlalchemy.text (
+                        """
+                        UPDATE carts
+                        SET checked_out = True
+                        WHERE carts.id = :id
+                        """
+                    ), {"id": cart_id})
 
             else:
                 quantity = 0
