@@ -103,7 +103,7 @@ def get_bottle_plan():
             )).scalar()
              total_ml = total_ml//100 #how many potions can be made with ml available
              
-    potion_plan = []
+    potion_plan = {}
     for potion in potions:
         colors = []
         if potion.red > 0:
@@ -137,19 +137,46 @@ def get_bottle_plan():
                 blue_ml -= (potion.blue * quantity)
                 green_ml -= (potion.green * quantity)
                 dark_ml -= (potion.dark * quantity)
-                potion_plan.append({
-                        "potion_type": [potion.red, potion.green, potion.blue, potion.dark],
-                        "quantity": quantity,
-                    } )
+                potion_plan[potion.red, potion.green, potion.blue, potion.dark] = quantity
                 total_potions += quantity
             else:
-                potion_plan.append({
-                        "potion_type": [potion.red, potion.green, potion.blue, potion.dark],
-                        "quantity": potion_capacity - total_potions,
-                    } )
+                potion_plan[potion.red, potion.green, potion.blue, potion.dark] = potion_capacity - total_potions
                 total_potions = potion_capacity
+    
+    for potion in potions_available:
+        colors = []
+        if potion.red > 0:
+            colors.append(red_ml//potion.red)
+        if potion.blue > 0:
+            colors.append(blue_ml//potion.blue)
+        if potion.green > 0:
+            colors.append(green_ml//potion.green)
+        if potion.dark > 0:
+            colors.append(dark_ml//potion.dark)
+        quantity = min(colors)
+        
+        if quantity > 0 and total_potions != potion_capacity:
+            if (quantity + total_potions) < potion_capacity:
+                red_ml -= (potion.red * quantity)
+                blue_ml -= (potion.blue * quantity)
+                green_ml -= (potion.green * quantity)
+                dark_ml -= (potion.dark * quantity)
+                potion_plan[potion.red, potion.green, potion.blue, potion.dark] += quantity
+                total_potions += quantity
+            else:
+                potion_plan[potion.red, potion.green, potion.blue, potion.dark] += (potion_capacity - total_potions)
+                total_potions = potion_capacity
+
+    potions_quantity = []
+    key_value_pairs = potion_plan.items()
+    for key, value in key_value_pairs:
+        potions_quantity.append({
+                        "potion_type": key,
+                        "quantity": value,
+                    })
+
                 
-    return potion_plan #does it make sense to only offer as many as can be made or should the deliver potions focus on that logic
+    return potions_quantity #does it make sense to only offer as many as can be made or should the deliver potions focus on that logic
              
                  
             
