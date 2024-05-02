@@ -12,6 +12,7 @@ router = APIRouter(
     tags=["cart"],
     dependencies=[Depends(auth.get_api_key)],
 )
+day = "Edgeday"
 
 class search_sort_options(str, Enum):
     customer_name = "customer_name"
@@ -90,7 +91,7 @@ def post_visits(visit_id: int, customers: list[Customer]):
 def create_cart(new_cart: Customer):
     """ """
     with db.engine.begin() as connection:
-        customer_id = connection.execute(sqlalchemy.text("INSERT INTO customers (name, class, level) VALUES (:name, :class, :level) RETURNING id"), {"name": new_cart.customer_name, "class": new_cart.character_class, "level": new_cart.level}).scalar_one()
+        customer_id = connection.execute(sqlalchemy.text("INSERT INTO customers (name, class, level, day) VALUES (:name, :class, :level, :day) RETURNING id"), {"name": new_cart.customer_name, "class": new_cart.character_class, "level": new_cart.level, "day": day}).scalar_one()
         cart_id = connection.execute(sqlalchemy.text("INSERT INTO carts (customer, checked_out, customer_id) VALUES (:customer_name, :checked_out, :customer_id) RETURNING id"), {"customer_name": new_cart.customer_name, "checked_out": False, "customer_id": customer_id}).scalar_one()
 
     return {"cart_id": cart_id}
@@ -120,7 +121,6 @@ class CartCheckout(BaseModel):
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
     # you need to add checkout logic
-    day = "Edgeday"
     total_paid = 0
     total_potions = 0
     with db.engine.begin() as connection:
