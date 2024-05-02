@@ -120,7 +120,7 @@ class CartCheckout(BaseModel):
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
     # you need to add checkout logic
-    day = "Soulday"
+    day = "Edgeday"
     total_paid = 0
     total_potions = 0
     with db.engine.begin() as connection:
