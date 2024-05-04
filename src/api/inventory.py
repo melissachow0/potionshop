@@ -72,12 +72,11 @@ def get_capacity_plan():
             potion_threshold = total_potions/potion_capacity
 
     
-            # if potion_threshold > .8:
-            potion_quantity = 1
-            #connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - 1000"))
-            # elif ml_threshold > .8:
-            #     ml_quantity = 1
-            #     connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - 1000"))
+            if potion_threshold > .7:
+                potion_quantity = 1
+            elif ml_threshold > .7:
+                ml_quantity = 1
+    
         
 
         
@@ -103,6 +102,8 @@ def deliver_capacity_plan(capacity_purchase : CapacityPurchase, order_id: int):
     paid = (capacity_purchase.potion_capacity + capacity_purchase.ml_capacity) * 1000
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - :paid"), {"paid": paid})
+        connection.execute(sqlalchemy.text("INSERT INTO gold_ledger (change) VALUES (:change)"), 
+                    [{"change": - (paid) }])
         connection.execute(sqlalchemy.text("""UPDATE capacity SET 
                                            ml_capacity = ml_capacity + :ml_bought,
                                            potion_capacity = potion_capacity + :potions_bought"""), [{"ml_bought":  capacity_purchase.ml_capacity, "potions_bought": capacity_purchase.potion_capacity}])
