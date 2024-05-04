@@ -12,7 +12,7 @@ router = APIRouter(
     tags=["cart"],
     dependencies=[Depends(auth.get_api_key)],
 )
-day = "Bloomday"
+day = "Arcanday"
 
 class search_sort_options(str, Enum):
     customer_name = "customer_name"
