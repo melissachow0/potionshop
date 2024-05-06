@@ -23,19 +23,18 @@ def get_inventory():
         #         """
         #     )).scalar()
         total_potions = connection.execute(sqlalchemy.text( """
-               SELECT SUM(change) 
+                SELECT COALESCE(SUM(change), 0)
                 FROM potions_ledger
                 """
-                                                           
-            )).scalar()
+                )).scalar()
         gold = connection.execute(sqlalchemy.text( """
-               SELECT SUM(change) 
+               SELECT COALESCE(SUM(change) ,0)
                 FROM gold_ledger
                 """
                                                            
             )).scalar()
         total_ml = connection.execute(sqlalchemy.text( """
-               SELECT SUM(change_red + change_green + change_blue + change_black) 
+               SELECT COALESCE(SUM(change_red + change_green + change_blue + change_black), 0)
                 FROM ml_ledger
                 """
                                                            
