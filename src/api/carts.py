@@ -60,68 +60,57 @@ def search_orders(
     with db.engine.begin() as connection:
         row_number = connection.execute(sqlalchemy.text("SELECT COUNT(*) FROM search_data")).scalar_one()
         if row_number > 0:
+            query = """
+                SELECT id AS line_item_id, created_at AS timestamp, change, sku AS item_sku, name AS customer_name
+                FROM search_data 
+                """
+            params = {}
+
             if customer_name and potion_sku:
-                rows = connection.execute(sqlalchemy.text(
-                    """SELECT id AS line_item_id , created_at AS timestamp, change, sku AS itme_sku, name as customer_name
-                    FROM search_data 
-                    WHERE name = :name AND sku = :sku
-                    ORDER BY :sort :order 
-                    OFFSET :offset ROWS 
-                    FETCH NEXT 5 ROWS ONLY"""), [{"sort": sort_col, "order": sort_order, "offset": search_page, "name": customer_name, "sku": potion_sku}]).scalar()
+                query += "WHERE name = :name AND sku = :sku"
+                params["name"] = customer_name
+                params["sku"] = potion_sku
             elif customer_name:
-                rows = connection.execute(sqlalchemy.text(
-                    """SELECT id AS line_item_id , created_at AS timestamp, change, sku AS itme_sku, name as customer_name 
-                    FROM search_data 
-                    WHERE name = :name
-                    ORDER BY :sort :order 
-                    OFFSET :offset ROWS 
-                    FETCH NEXT 5 ROWS ONLY"""), [{"sort": sort_col, "order": sort_order, "offset": search_page, "name": customer_name}]).scalar()
+                query += "WHERE name = :name"
+                params["name"] = customer_name
             elif potion_sku:
-                rows = connection.execute(sqlalchemy.text(
-                    """SELECT id AS line_item_id , created_at AS timestamp, change, sku AS itme_sku, name as customer_name 
-                    FROM search_data 
-                    WHERE sku = :sku
-                    ORDER BY :sort :order 
-                    OFFSET :offset ROWS 
-                    FETCH NEXT 5 ROWS ONLY"""), [{"sort": sort_col, "order": sort_order, "offset": search_page, "sku": potion_sku}]).scalar()
-            else:
-                rows = connection.execute(sqlalchemy.text(
-                    """SELECT id AS line_item_id , created_at AS timestamp, change, sku AS itme_sku, name as customer_name
-                    FROM search_data 
-                    ORDER BY :sort :order 
-                    OFFSET :offset ROWS 
-                    FETCH NEXT 5 ROWS ONLY"""), [{"sort": sort_col, "order": sort_order, "offset": search_page}]).scalar()
+                query += "WHERE sku = :sku"
+                params["sku"] = potion_sku
+
+            query += " ORDER BY {} {}".format(sort_col.value, sort_order.value)
+
+            try:
+                offset = int(search_page)
+            except ValueError:
+                offset = 0
+
+            query += " OFFSET :offset ROWS FETCH NEXT 5 ROWS ONLY"
+            params["offset"] = offset
+
+            rows = connection.execute(sqlalchemy.text(query), params).fetchall()
+
             for row in rows:
                 results.append(
                     {
-                    "line_item_id": row.id,
-                    "item_sku": row.sku,
-                    "customer_name": row.name,
-                    "line_item_total": -row.change,
-                    "timestamp": row.created_at,
-                }
+                        "line_item_id": row.line_item_id,
+                        "item_sku": row.item_sku,
+                        "customer_name": row.customer_name,
+                        "line_item_total": -row.change,
+                        "timestamp": row.timestamp,
+                    }
                 )
-        try: 
-            previous = int(search_page) - 5
-            next = int(search_page) + 5
-        except Error:
-            print("no")
 
-        if previous < 0:
-            previous = 0
-        if next > row_number:
-            next = row_number - 5
-                
-
-        
-
-
+        previous = max(int(search_page) - 5, 0) if search_page.isdigit() else 0
+        next = max(min(int(search_page) + 5, row_number - 5), 0) if search_page.isdigit() else 5
 
     return {
         "previous": previous,
         "next": next,
         "results": results,
     }
+                
+
+    
 
 
 class Customer(BaseModel):
