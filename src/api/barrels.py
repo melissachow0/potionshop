@@ -44,27 +44,25 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
             change_black = 0
 
             if barrel.potion_type[0]== 1:
-                num_ml = "num_red_ml"
+                num_ml = "change_red"
                 change_red = barrel.ml_per_barrel * barrel.quantity
             elif barrel.potion_type[1] == 1:
-                num_ml = "num_green_ml"
+                num_ml = "change_green"
                 change_green = barrel.ml_per_barrel * barrel.quantity
             elif barrel.potion_type[2] == 1:
-                num_ml = "num_blue_ml"
+                num_ml = "change_blue"
                 change_blue = barrel.ml_per_barrel * barrel.quantity
             elif barrel.potion_type[3] == 1:
-                num_ml = "num_dark_ml"
+                num_ml = "change_black"
                 change_black = barrel.ml_per_barrel * barrel.quantity
             else:
                 raise Exception("Invalid potion type")
             
             if num_ml:
-                    ml = connection.execute(sqlalchemy.text(f"SELECT {num_ml} FROM global_inventory")).scalar()
+                    ml = connection.execute(sqlalchemy.text(f"SELECT SUM({num_ml}) FROM ml_ledger"), {"num_ml": num_ml}).scalar()
                     ml += (barrel.ml_per_barrel * barrel.quantity)
-                    connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET {num_ml} = :ml"), { "ml": ml})
-                    gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
+                    gold = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM gold_ledger")).scalar()
                     gold -= (barrel.price * barrel.quantity)
-                    connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = :gold"), {"gold": gold})
                     connection.execute(sqlalchemy.text("INSERT INTO gold_ledger (change) VALUES (:change)"), 
                     [{"change": - (barrel.price * barrel.quantity) }])
                     connection.execute(sqlalchemy.text("INSERT INTO ml_ledger (change_red, change_green, change_blue, change_black ) VALUES (:change_red, :change_green, :change_blue, :change_black)"), 
@@ -88,10 +86,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     barrels = []
     
     with db.engine.begin() as connection:
-        total_ml = connection.execute(sqlalchemy.text("SELECT SUM(num_green_ml + num_red_ml + num_blue_ml + num_dark_ml) FROM global_inventory")).scalar()
+        total_ml = connection.execute(sqlalchemy.text("SELECT SUM(change_red + change_green + change_blue + change_black) FROM ml_ledger")).first()
         ml_capacity = connection.execute(sqlalchemy.text("SELECT ml_capacity FROM capacity")).scalar()
         ml_capacity = ml_capacity * 10000
-        gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
+        gold = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM gold_ledger")).scalar()
         potion_capacity = connection.execute(sqlalchemy.text("SELECT potion_capacity FROM capacity")).scalar()
         potion_capacity = potion_capacity * 50
         

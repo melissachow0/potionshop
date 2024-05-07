@@ -47,17 +47,6 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
             connection.execute(sqlalchemy.text("INSERT INTO potions_ledger (change, red, green,blue, black ) VALUES (:change, :red, :green, :blue, :black)"), 
                     [{"change": potion.quantity, "red": potion.potion_type[0], "green": potion.potion_type[1], "blue":potion.potion_type[2], "black": potion.potion_type[3] }])
 
-
-    
-        connection.execute(sqlalchemy.text(
-            """
-                UPDATE global_inventory SET
-                num_red_ml = num_red_ml - :red_ml,
-                num_green_ml = num_green_ml - :green_ml,
-                num_blue_ml = num_blue_ml - :blue_ml,
-                num_dark_ml = num_dark_ml - :dark_ml
-            """
-        ), [{"red_ml": red_ml, "green_ml": green_ml, "blue_ml": blue_ml, "dark_ml": dark_ml}])
         connection.execute(sqlalchemy.text("INSERT INTO ml_ledger (change_red, change_green, change_blue, change_black ) VALUES (:change_red, :change_green, :change_blue, :change_black)"), 
                     [{"change_red": -red_ml, "change_green":- green_ml, "change_blue": -blue_ml, "change_black": -dark_ml }])
 
@@ -90,17 +79,9 @@ def get_bottle_plan():
              potion_capacity = connection.execute(sqlalchemy.text("SELECT potion_capacity FROM capacity")).scalar()
              potion_capacity = potion_capacity * 50
              # use .first() and also gather all these in one single call
-             green_ml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).scalar()
-             blue_ml = connection.execute(sqlalchemy.text("SELECT num_blue_ml FROM global_inventory")).scalar()
-             red_ml = connection.execute(sqlalchemy.text("SELECT num_red_ml FROM global_inventory")).scalar()
-             dark_ml = connection.execute(sqlalchemy.text("SELECT num_dark_ml FROM global_inventory")).scalar()
+             red_ml, green_ml, blue_ml, dark_ml = connection.execute(sqlalchemy.text("SELECT SUM(change_red), SUM(change_green), SUM(change_blue), SUM(change_black) FROM ml_ledger")).first()
              potions = connection.execute(sqlalchemy.text("SELECT * FROM potions WHERE quantity < max_quantity ORDER BY RANDOM()")).fetchall()
-             total_ml = connection.execute(sqlalchemy.text( """
-               SELECT SUM(change_red + change_green + change_blue + change_black) 
-                FROM ml_ledger
-                """
-                                                           
-            )).scalar()
+             total_ml = red_ml + green_ml + blue_ml + dark_ml
              total_ml = total_ml//100 #how many potions can be made with ml available
              
     potion_plan = {}
