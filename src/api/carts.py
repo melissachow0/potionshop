@@ -56,23 +56,42 @@ def search_orders(
     Your results must be paginated, the max results you can return at any
     time is 5 total line items.
     """
-    # with db.engine.begin() as connection:
+    results = []
+    with db.engine.begin() as connection:
+        row_number = connection.execute(sqlalchemy.text("SELECT COUNT(*) FROM search_data")).scalar_one()
+        if row_number > 0:
+            rows = connection.execute(sqlalchemy.text(
+                """SELECT id, created_at AS timestamp, change, sku, name 
+                FROM search_data 
+                ORDER BY :sort :order 
+                OFFSET :offset ROWS 
+                FETCH NEXT 5 ROWS ONLY"""), [{"sort": sort_col, "order": sort_order, "offset": search_page}]).scalar()
+            for row in rows:
+                results.append(
+                    {
+                    "line_item_id": row.id,
+                    "item_sku": row.sku,
+                    "customer_name": row.name,
+                    "line_item_total": -row.change,
+                    "timestamp": row.created_at,
+                }
+                )
+        previous = search_page - 5
+        next = search_page + 5
+        if previous < 0:
+            previous = 0
+        if next > row_number:
+            next = row_number - 5
+                
+
         
 
 
 
     return {
-        "previous": "",
-        "next": "",
-        "results": [
-            {
-                "line_item_id": 1,
-                "item_sku": "1 oblivion potion",
-                "customer_name": "Scaramouche",
-                "line_item_total": 50,
-                "timestamp": "2021-01-01T00:00:00Z",
-            }
-        ],
+        "previous": previous,
+        "next": next,
+        "results": results,
     }
 
 
