@@ -177,6 +177,13 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             if quantity <= stock:
                 total_potions += quantity
                 total_paid += (quantity * price)
+                connection.execute(sqlalchemy.text (
+                         """
+                         UPDATE potions
+                         SET quantity = potions.quantity - :quantity
+                         WHERE potions.sku = :sku
+                         """
+                     ), {"quantity": quantity, "sku": item_sku})
                 connection.execute(sqlalchemy.text("INSERT INTO potions_ledger (change, red, green,blue, black, day, customer_id) VALUES (:change, :red, :green, :blue, :black, :day,( SELECT customer_id FROM carts WHERE carts.id = :id ))"), 
                     [{"change": -quantity, "red": red, "green": green, "blue":blue, "black": dark, "day": day , "id": cart_id}])
                 connection.execute(sqlalchemy.text("INSERT INTO gold_ledger (change) VALUES (:change)"), 

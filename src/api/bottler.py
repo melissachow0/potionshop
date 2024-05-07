@@ -72,8 +72,8 @@ def get_bottle_plan():
 
     with db.engine.begin() as connection:
              total_potions = connection.execute(sqlalchemy.text( """
-                SELECT SUM(quantity) 
-                FROM potions 
+                SELECT SUM(change) 
+                FROM potions_ledger 
                 """
             )).scalar() 
              potion_capacity = connection.execute(sqlalchemy.text("SELECT potion_capacity FROM capacity")).scalar()
