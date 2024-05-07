@@ -57,6 +57,10 @@ def search_orders(
     time is 5 total line items.
     """
     results = []
+    if search_page == "":
+        search_page = "0"
+    
+    
     with db.engine.begin() as connection:
         row_number = connection.execute(sqlalchemy.text("SELECT COUNT(*) FROM search_data")).scalar_one()
         if row_number > 0:
