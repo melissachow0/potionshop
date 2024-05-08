@@ -12,7 +12,7 @@ router = APIRouter(
     tags=["cart"],
     dependencies=[Depends(auth.get_api_key)],
 )
-day = "Blesseday"
+
 
 class search_sort_options(str, Enum):
     customer_name = "customer_name"
@@ -169,6 +169,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     total_paid = 0
     total_potions = 0
     with db.engine.begin() as connection:
+        day = connection.execute(sqlalchemy.text("SELECT day FROM weekday")).scalar_one()
         rows = connection.execute(sqlalchemy.text("SELECT quantity, item_sku  FROM cart_items WHERE cart_id = :cart_id"), {"cart_id": cart_id}).fetchall()
         for row in rows:
             quantity, item_sku = row
