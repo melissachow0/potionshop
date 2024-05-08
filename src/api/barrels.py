@@ -86,7 +86,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     barrels = []
     
     with db.engine.begin() as connection:
-        total_ml = connection.execute(sqlalchemy.text("SELECT SUM(change_red + change_green + change_blue + change_black) FROM ml_ledger")).first()
+        total_ml = connection.execute(sqlalchemy.text("SELECT SUM(change_red + change_green + change_blue + change_black) FROM ml_ledger")).scalar_one()
         ml_capacity = connection.execute(sqlalchemy.text("SELECT ml_capacity FROM capacity")).scalar()
         ml_capacity = ml_capacity * 10000
         gold = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM gold_ledger")).scalar()
