@@ -71,15 +71,15 @@ def search_orders(
             params = {}
 
             if customer_name and potion_sku:
-                query += "WHERE name = :name AND sku = :sku"
+                query += "WHERE name LIKE :name AND sku LIKE :sku"
                 params["name"] = customer_name
-                params["sku"] = potion_sku
+                params["sku"] = potion_sku + "%"
             elif customer_name:
-                query += "WHERE name = :name"
-                params["name"] = customer_name
+                query += "WHERE name LIKE :name"
+                params["name"] = customer_name + "%"
             elif potion_sku:
-                query += "WHERE sku = :sku"
-                params["sku"] = potion_sku
+                query += "WHERE sku LIKE :sku"
+                params["sku"] = potion_sku + "%"
 
             query += " ORDER BY {} {}".format(sort_col.value, sort_order.value)
 

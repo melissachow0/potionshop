@@ -59,7 +59,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
                 raise Exception("Invalid potion type")
             
             if num_ml:
-                    ml = connection.execute(sqlalchemy.text(f"SELECT SUM({num_ml}) FROM ml_ledger"), {"num_ml": num_ml}).scalar()
+                    ml = connection.execute(sqlalchemy.text(f"SELECT SUM({num_ml}) FROM ml_ledger"), {"num_ml": num_ml}).scalar() #ask about this
                     ml += (barrel.ml_per_barrel * barrel.quantity)
                     gold = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM gold_ledger")).scalar()
                     gold -= (barrel.price * barrel.quantity)
