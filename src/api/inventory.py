@@ -71,9 +71,9 @@ def get_capacity_plan():
             potion_threshold = total_potions/potion_capacity
 
     
-            if potion_threshold > .7:
+            if potion_threshold > .75:
                 potion_quantity = 1
-            elif ml_threshold > .7:
+            elif ml_threshold > .75:
                 ml_quantity = 1
     
         
