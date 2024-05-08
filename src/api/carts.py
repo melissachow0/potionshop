@@ -136,6 +136,7 @@ def post_visits(visit_id: int, customers: list[Customer]):
 def create_cart(new_cart: Customer):
     """ """
     with db.engine.begin() as connection:
+        day = connection.execute(sqlalchemy.text("SELECT day FROM weekday")).scalar_one()
         customer_id = connection.execute(sqlalchemy.text("INSERT INTO customers (name, class, level, day) VALUES (:name, :class, :level, :day) RETURNING id"), {"name": new_cart.customer_name, "class": new_cart.character_class, "level": new_cart.level, "day": day}).scalar_one()
         cart_id = connection.execute(sqlalchemy.text("INSERT INTO carts (customer, checked_out, customer_id) VALUES (:customer_name, :checked_out, :customer_id) RETURNING id"), {"customer_name": new_cart.customer_name, "checked_out": False, "customer_id": customer_id}).scalar_one()
 
