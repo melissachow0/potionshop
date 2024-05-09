@@ -16,7 +16,6 @@ def get_catalog():
     count = 0
     with db.engine.begin() as connection:
         potions = connection.execute(sqlalchemy.text("SELECT * FROM potions ORDER BY quantity DESC")).fetchall()
-       
 
     catalog = []
     for potion in potions:

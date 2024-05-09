@@ -80,8 +80,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
 def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
     sorted_barrels = sorted(wholesale_catalog, key=lambda x: x.ml_per_barrel,reverse=True)
-    #have to add logic for capacity
-    #check this logic again
+
     print(sorted_barrels)
     barrels = []
     
@@ -91,47 +90,65 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         ml_capacity = ml_capacity * 10000
         gold = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM gold_ledger")).scalar()
         potion_capacity = connection.execute(sqlalchemy.text("SELECT potion_capacity FROM capacity")).scalar()
+        day = connection.execute(sqlalchemy.text("SELECT day FROM weekday")).scalar_one()
+        potion_type = connection.execute(sqlalchemy.text("SELECT SUM(red) AS red, SUM(green) AS green, SUM(blue) AS blue, SUM(dark) as dark FROM class_analytics WHERE day = :day "), {"day": day}).fetchone() 
         potion_capacity = potion_capacity * 50
+        barrel_type = [min(1, potion_type.red), min(1, potion_type.green), min(1, potion_type.blue), min(1, potion_type.dark)]
+       
         
         
         big_barrel_quantity = 0
         for barrel in sorted_barrels:
-            if barrel.ml_per_barrel == sorted_barrels[0].ml_per_barrel:
-                big_barrel_quantity += 1
+            if barrel.ml_per_barrel == sorted_barrels[0].ml_per_barrel: #checking if the barrel is the biggest barrel available
+                #if barrel is the biggest, it checks if that day that color is bought
+                if barrel.potion_type[0] == barrel_type[0] :
+                    if barrel.potion_type[0] == 1:
+                        big_barrel_quantity += 1
+                elif barrel.potion_type[1] == barrel_type[1]:
+                    if barrel.potion_type[1] == 1:
+                        big_barrel_quantity += 1
+                elif barrel.potion_type[2] == barrel_type[2]:
+                    if barrel.potion_type[2] == 1:
+                        big_barrel_quantity += 1
+                elif barrel.potion_type[3] == barrel_type[3]:
+                    if barrel.potion_type[3] == 1:
+                        big_barrel_quantity += 1 
+                else:
+                    raise Exception("Invalid potion type")
+                            
+
 
         biggest_barrel = sorted_barrels[0].price * big_barrel_quantity
         min_quantity = max(gold//biggest_barrel, 1)
 
-
-        #this code should prioritize buying medium barrels in order to bring price down
+        #this code should prioritize buying the biggest barrels in order to bring price down
 
         for barrel in sorted_barrels:
-            sku = 0
-            if barrel.potion_type[0]== 1:
-                sku = "RED_POTION"
-    
-            elif barrel.potion_type[1] == 1:
-                sku = "GREEN_POTION"
+            buy = False
+            if barrel.potion_type[0]== barrel_type[0] == 1:
+                buy = True
+                
+            elif barrel.potion_type[1] == barrel_type[1] == 1:
+                buy = True
             
-            elif barrel.potion_type[2] == 1:
-                sku = "BLUE_POTION"
+            elif barrel.potion_type[2] == barrel_type[2] == 1:
+                buy = True
            
-            elif barrel.potion_type[3] == 1:
-                sku = "BLACK_POTION"
+            elif barrel.potion_type[3] == barrel_type[3] == 1:
+                buy = True
      
             else:
-                raise Exception("Invalid potion type")
+                buy = False
             
-            if sku:
-                    potions = connection.execute(sqlalchemy.text("SELECT quantity FROM potions WHERE sku =:sku "),{"sku": sku}).scalar()
-
-                    if potions < (potion_capacity//4):
-                        # minimum between how much they offer, how much you can afford and 1
-                        quantity = min(barrel.quantity, min_quantity, gold//barrel.price) # will always be equal or less than 1
-                        gold -= barrel.price * quantity
-                        if quantity > 0 and (total_ml + quantity * barrel.ml_per_barrel) < ml_capacity:
-                            barrels.append({"sku": barrel.sku, "quantity": quantity,})
-                            total_ml += (quantity * barrel.ml_per_barrel)
+            if buy:
+                if barrel.ml_per_barrel == sorted_barrels[0].ml_per_barrel:
+                     quantity = min(barrel.quantity, min_quantity, gold//barrel.price) 
+                else:
+                    quantity = min(barrel.quantity, gold//barrel.price) 
+                gold -= barrel.price * quantity
+                if quantity > 0 and (total_ml + quantity * barrel.ml_per_barrel) < ml_capacity:
+                    barrels.append({"sku": barrel.sku, "quantity": quantity,})
+                    total_ml += (quantity * barrel.ml_per_barrel)
 
 
     return barrels

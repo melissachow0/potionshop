@@ -84,22 +84,9 @@ def get_bottle_plan():
              potions = connection.execute(sqlalchemy.text("SELECT * FROM potions WHERE quantity < max_quantity ORDER BY RANDOM()")).fetchall()
              total_ml = red_ml + green_ml + blue_ml + dark_ml
              total_ml = total_ml//100 #how many potions can be made with ml available
-             days_potions = connection.execute(sqlalchemy.text("SELECT * FROM day_analysis_table WHERE day = :day ORDER BY total_bought ASC"), {"day": day}).fetchall()
+             days_potions = connection.execute(sqlalchemy.text("SELECT * FROM class_analytics WHERE day = :day ORDER BY RANDOM()"), {"day": day}).fetchall()
              
     potion_plan = {}
-    # for potion in potions:
-    #     colors = []
-    #     if potion.red > 0:
-    #         colors.append(red_ml//potion.red)
-    #     if potion.blue > 0:
-    #         colors.append(blue_ml//potion.blue)
-    #     if potion.green > 0:
-    #         colors.append(green_ml//potion.green)
-    #     if potion.dark > 0:
-    #         colors.append(dark_ml//potion.dark)
-    #     quantity = min(colors)
-    #     if quantity > 0:
-    #         potions_available.append(potion) #gathering how many types of potions can be made
 
     for potion in days_potions:
         colors = []
@@ -109,21 +96,44 @@ def get_bottle_plan():
             colors.append(blue_ml//potion.blue)
         if potion.green > 0:
             colors.append(green_ml//potion.green)
-        if potion.black > 0:
-            colors.append(dark_ml//potion.black)
-        quantity = min(colors)
-        # quantity = min(available, total_ml//len(potions_available)) #limiting the amount of potions that can be made depending on ml available and types that can be made to diversify potions
+        if potion.dark > 0:
+            colors.append(dark_ml//potion.dark)
+        quantity = min(min(colors),  total_ml//len(days_potions)) #limiting the amount of potions that can be made depending on ml available and types that can be made to diversify potions
 
         if quantity > 0 and total_potions != potion_capacity:
             if (quantity + total_potions) < potion_capacity:
                 red_ml -= (potion.red * quantity)
                 blue_ml -= (potion.blue * quantity)
                 green_ml -= (potion.green * quantity)
-                dark_ml -= (potion.black * quantity)
-                potion_plan[potion.red, potion.green, potion.blue, potion.black] = quantity
+                dark_ml -= (potion.dark * quantity)
+                potion_plan[potion.red, potion.green, potion.blue, potion.dark] = quantity
                 total_potions += quantity
             else:
-                potion_plan[potion.red, potion.green, potion.blue, potion.black] = potion_capacity - total_potions
+                potion_plan[potion.red, potion.green, potion.blue, potion.dark] = potion_capacity - total_potions
+                total_potions = potion_capacity
+
+    for potion in days_potions:
+        colors = []
+        if potion.red > 0:
+            colors.append(red_ml//potion.red)
+        if potion.blue > 0:
+            colors.append(blue_ml//potion.blue)
+        if potion.green > 0:
+            colors.append(green_ml//potion.green)
+        if potion.dark > 0:
+            colors.append(dark_ml//potion.dark)
+        quantity = min(colors)
+
+        if quantity > 0 and total_potions != potion_capacity:
+            if (quantity + total_potions) < potion_capacity:
+                red_ml -= (potion.red * quantity)
+                blue_ml -= (potion.blue * quantity)
+                green_ml -= (potion.green * quantity)
+                dark_ml -= (potion.dark * quantity)
+                potion_plan[potion.red, potion.green, potion.blue, potion.dark] += quantity
+                total_potions += quantity
+            else:
+                potion_plan[potion.red, potion.green, potion.blue, potion.dark] = potion_capacity - total_potions
                 total_potions = potion_capacity
     
     for potion in potions:
