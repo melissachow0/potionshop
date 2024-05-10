@@ -126,7 +126,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         for barrel in sorted_barrels:
             buy = False
             if barrel.potion_type[0]== barrel_type[0] == 1:
-                buy = True
+                buy = False
                 
             elif barrel.potion_type[1] == barrel_type[1] == 1:
                 buy = True
@@ -149,6 +149,14 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                 if quantity > 0 and (total_ml + quantity * barrel.ml_per_barrel) < ml_capacity:
                     barrels.append({"sku": barrel.sku, "quantity": quantity,})
                     total_ml += (quantity * barrel.ml_per_barrel)
+
+        for barrel in sorted_barrels:
+                quantity = min(barrel.quantity, gold//barrel.price, 2) 
+                if quantity > 0:
+                    gold -= barrel.price * quantity
+                    if quantity > 0 and (total_ml + quantity * barrel.ml_per_barrel) < ml_capacity:
+                        barrels.append({"sku": barrel.sku, "quantity": quantity,})
+                        total_ml += (quantity * barrel.ml_per_barrel)
 
 
     return barrels
