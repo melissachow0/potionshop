@@ -87,7 +87,9 @@ def get_bottle_plan():
              days_potions = connection.execute(sqlalchemy.text("SELECT * FROM class_analytics WHERE day = :day ORDER BY RANDOM()"), {"day": day}).fetchall()
              
     potion_plan = {}
+    available = 0
 
+    #first I gather how many of the day's potions I can make
     for potion in days_potions:
         colors = []
         if potion.red > 0:
@@ -98,7 +100,23 @@ def get_bottle_plan():
             colors.append(green_ml//potion.green)
         if potion.dark > 0:
             colors.append(dark_ml//potion.dark)
-        quantity = min(min(colors),  total_ml//len(days_potions)) #limiting the amount of potions that can be made depending on ml available and types that can be made to diversify potions
+        quantity = min(colors)
+        if quantity > 0:
+            available +=1
+
+
+    #Making potions based on potions available
+    for potion in days_potions:
+        colors = []
+        if potion.red > 0:
+            colors.append(red_ml//potion.red)
+        if potion.blue > 0:
+            colors.append(blue_ml//potion.blue)
+        if potion.green > 0:
+            colors.append(green_ml//potion.green)
+        if potion.dark > 0:
+            colors.append(dark_ml//potion.dark)
+        quantity = min(min(colors),  total_ml//available) #limiting the amount of potions that can be made depending on ml available and types that can be made to diversify potions
 
         if quantity > 0 and total_potions != potion_capacity:
             if (quantity + total_potions) < potion_capacity:
@@ -112,6 +130,7 @@ def get_bottle_plan():
                 potion_plan[potion.red, potion.green, potion.blue, potion.dark] = potion_capacity - total_potions
                 total_potions = potion_capacity
 
+    #Once potions are distributed equally, if still possible making more potions of day types
     for potion in days_potions:
         colors = []
         if potion.red > 0:
@@ -136,6 +155,7 @@ def get_bottle_plan():
                 potion_plan[potion.red, potion.green, potion.blue, potion.dark] = potion_capacity - total_potions
                 total_potions = potion_capacity
     
+    #Finally if still possible, making random potions
     for potion in potions:
         colors = []
         if potion.red > 0:

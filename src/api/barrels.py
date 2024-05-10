@@ -114,7 +114,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     if barrel.potion_type[3] == 1:
                         big_barrel_quantity += 1 
                 else:
-                    raise Exception("Invalid potion type")
+                    big_barrel_quantity += 1
                             
 
 
