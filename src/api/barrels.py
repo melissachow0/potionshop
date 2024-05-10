@@ -103,7 +103,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                 #if barrel is the biggest, it checks if that day that color is bought
                 if barrel.potion_type[0] == barrel_type[0] :
                     if barrel.potion_type[0] == 1:
-                        big_barrel_quantity += 0
+                        big_barrel_quantity += 1
                 elif barrel.potion_type[1] == barrel_type[1]:
                     if barrel.potion_type[1] == 1:
                         big_barrel_quantity += 1
@@ -126,7 +126,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         for barrel in sorted_barrels:
             buy = False
             if barrel.potion_type[0]== barrel_type[0] == 1:
-                buy = False
+                buy = True #turn back to false after edgeday, also change max potion in potions table for red
                 
             elif barrel.potion_type[1] == barrel_type[1] == 1:
                 buy = True
