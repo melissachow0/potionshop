@@ -187,7 +187,10 @@ def get_bottle_plan():
 
                 total_potions += quantity
             else:
-                potion_plan[potion.red, potion.green, potion.blue, potion.dark] += (potion_capacity - total_potions)
+                try:
+                    potion_plan[potion.red, potion.green, potion.blue, potion.dark] += (potion_capacity - total_potions)
+                except KeyError: 
+                    potion_plan[potion.red, potion.green, potion.blue, potion.dark] = quantity
                 total_potions = potion_capacity
 
     potions_quantity = []
