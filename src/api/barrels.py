@@ -177,9 +177,11 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                 else:
                     quantity = min(barrel.quantity, gold//barrel.price, 2) 
                 if quantity > 0 and (total_ml + quantity * barrel.ml_per_barrel) < ml_capacity:
-                    barrels.append({"sku": barrel.sku, "quantity": quantity,})
-                    total_ml += (quantity * barrel.ml_per_barrel)
-                    gold -= barrel.price * quantity
+                    sku_exists = any(item['sku'] == barrel.sku for item in barrels)
+                    if not sku_exists:
+                        barrels.append({"sku": barrel.sku, "quantity": quantity,})
+                        total_ml += (quantity * barrel.ml_per_barrel)
+                        gold -= barrel.price * quantity
 
 
     return barrels
