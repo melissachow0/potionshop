@@ -63,24 +63,18 @@ def get_capacity_plan():
                 """
             )).scalar()
         gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
+        ml_capacity = ml_capacity * 10000
+        potion_capacity = potion_capacity * 50
+        ml_threshold = total_ml/ml_capacity
+        potion_threshold = total_potions/potion_capacity
 
         if gold > 1000:
-            ml_capacity = ml_capacity * 10000
-            potion_capacity = potion_capacity * 50
-            ml_threshold = total_ml/ml_capacity
-            potion_threshold = total_potions/potion_capacity
-
-    
             if potion_threshold > .75:
                 potion_quantity = 1
-            elif ml_threshold > .75:
+                gold -= 1000
+        if gold > 1000:
+         if ml_threshold > .75:
                 ml_quantity = 1
-    
-        
-
-        
-
-
     return {
         "potion_capacity": potion_quantity,
         "ml_capacity": ml_quantity
