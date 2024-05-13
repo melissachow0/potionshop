@@ -97,36 +97,35 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
        
         
         
+        #check how many of the colors that are needed that day are available
         big_barrel_quantity = 0
         for barrel in sorted_barrels:
             if barrel.ml_per_barrel == sorted_barrels[0].ml_per_barrel: #checking if the barrel is the biggest barrel available
                 #if barrel is the biggest, it checks if that day that color is bought
-                if barrel.potion_type[0] == barrel_type[0] :
-                    if barrel.potion_type[0] == 1:
+                if barrel.potion_type[0] == barrel_type[0] == 1:
                         big_barrel_quantity += 1
-                elif barrel.potion_type[1] == barrel_type[1]:
-                    if barrel.potion_type[1] == 1:
+                elif barrel.potion_type[1] == barrel_type[1] == 1:
                         big_barrel_quantity += 1
-                elif barrel.potion_type[2] == barrel_type[2]:
-                    if barrel.potion_type[2] == 1:
+                elif barrel.potion_type[2] == barrel_type[2] == 1:
                         big_barrel_quantity += 1
-                elif barrel.potion_type[3] == barrel_type[3]:
-                    if barrel.potion_type[3] == 1:
+                elif barrel.potion_type[3] == barrel_type[3] == 1:
                         big_barrel_quantity += 1 
                 else:
-                    big_barrel_quantity += 1
+                    big_barrel_quantity += 0
                             
 
 
         biggest_barrel = sorted_barrels[0].price * big_barrel_quantity
-        min_quantity = max(gold//biggest_barrel, 1)
+        if biggest_barrel > 0:
+            min_quantity = max(gold//biggest_barrel, 1)
+        else:
+            min_quantity = 0
 
-        #this code should prioritize buying the biggest barrels in order to bring price down
-
+       #distribute the colors available properly
         for barrel in sorted_barrels:
             buy = False
             if barrel.potion_type[0]== barrel_type[0] == 1:
-                buy = True #turn back to false after edgeday, also change max potion in potions table for red
+                buy = True 
                 
             elif barrel.potion_type[1] == barrel_type[1] == 1:
                 buy = True
@@ -145,18 +144,42 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                      quantity = min(barrel.quantity, min_quantity, gold//barrel.price) 
                 else:
                     quantity = min(barrel.quantity, gold//barrel.price) 
-                gold -= barrel.price * quantity
                 if quantity > 0 and (total_ml + quantity * barrel.ml_per_barrel) < ml_capacity:
                     barrels.append({"sku": barrel.sku, "quantity": quantity,})
                     total_ml += (quantity * barrel.ml_per_barrel)
-
-        for barrel in sorted_barrels:
-                quantity = min(barrel.quantity, gold//barrel.price, 2) 
-                if quantity > 0:
                     gold -= barrel.price * quantity
-                    if quantity > 0 and (total_ml + quantity * barrel.ml_per_barrel) < ml_capacity:
-                        barrels.append({"sku": barrel.sku, "quantity": quantity,})
-                        total_ml += (quantity * barrel.ml_per_barrel)
+            
+
+       #check how many big barrels are available
+        big_barrel_quantity = 0
+        for barrel in sorted_barrels:
+            if barrel.ml_per_barrel == sorted_barrels[0].ml_per_barrel: #checking if the barrel is the biggest barrel available
+                #if barrel is the biggest, it checks if that day that color is bought
+                if barrel.potion_type[0] == 1:
+                    big_barrel_quantity += 1
+                elif barrel.potion_type[1] == 1:
+                    big_barrel_quantity += 1
+                elif barrel.potion_type[2] == 1:
+                    big_barrel_quantity += 1
+                elif barrel.potion_type[3] == 1:
+                    big_barrel_quantity += 1 
+                else:
+                    big_barrel_quantity += 0
+        
+        biggest_barrel = sorted_barrels[0].price * big_barrel_quantity
+        min_quantity = max(gold//biggest_barrel, 1)
+
+        #buy as many of big barrels as there are available
+        #if not big barrels buy as many as 2
+        for barrel in sorted_barrels:
+                if barrel.ml_per_barrel == sorted_barrels[0].ml_per_barrel: 
+                    quantity = min(barrel.quantity, gold//barrel.price, min_quantity) 
+                else:
+                    quantity = min(barrel.quantity, gold//barrel.price, 2) 
+                if quantity > 0 and (total_ml + quantity * barrel.ml_per_barrel) < ml_capacity:
+                    barrels.append({"sku": barrel.sku, "quantity": quantity,})
+                    total_ml += (quantity * barrel.ml_per_barrel)
+                    gold -= barrel.price * quantity
 
 
     return barrels
