@@ -56,13 +56,24 @@ def get_capacity_plan():
 
     with db.engine.begin() as connection:
         ml_capacity, potion_capacity = connection.execute(sqlalchemy.text("SELECT ml_capacity, potion_capacity FROM capacity")).first()
-        total_ml = connection.execute(sqlalchemy.text("SELECT SUM(num_green_ml + num_red_ml + num_blue_ml + num_dark_ml) FROM global_inventory")).scalar()
         total_potions = connection.execute(sqlalchemy.text( """
-                SELECT SUM(quantity) 
-                FROM potions 
+                SELECT COALESCE(SUM(change), 0)
+                FROM potions_ledger
                 """
+                )).scalar()
+        gold = connection.execute(sqlalchemy.text( """
+               SELECT COALESCE(SUM(change) ,0)
+                FROM gold_ledger
+                """
+                                                           
             )).scalar()
-        gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar()
+        total_ml = connection.execute(sqlalchemy.text( """
+               SELECT COALESCE(SUM(change_red + change_green + change_blue + change_black), 0)
+                FROM ml_ledger
+                """
+                                                           
+            )).scalar()
+    
         ml_capacity = ml_capacity * 10000
         potion_capacity = potion_capacity * 50
         ml_threshold = total_ml/ml_capacity
@@ -94,7 +105,6 @@ def deliver_capacity_plan(capacity_purchase : CapacityPurchase, order_id: int):
 
     paid = (capacity_purchase.potion_capacity + capacity_purchase.ml_capacity) * 1000
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - :paid"), {"paid": paid})
         connection.execute(sqlalchemy.text("INSERT INTO gold_ledger (change) VALUES (:change)"), 
                     [{"change": - (paid) }])
         connection.execute(sqlalchemy.text("""UPDATE capacity SET 
