@@ -116,7 +116,10 @@ def get_bottle_plan():
             colors.append(green_ml//potion.green)
         if potion.dark > 0:
             colors.append(dark_ml//potion.dark)
-        quantity = min(min(colors),  total_ml//available) #limiting the amount of potions that can be made depending on ml available and types that can be made to diversify potions
+        if available > 0:
+            quantity = min(min(colors),  total_ml//available) #limiting the amount of potions that can be made depending on ml available and types that can be made to diversify potions
+        else:
+            quantity = 0
 
         if quantity > 0 and total_potions != potion_capacity:
             if (quantity + total_potions) < potion_capacity:
