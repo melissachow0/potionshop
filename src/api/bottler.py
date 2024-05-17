@@ -87,7 +87,7 @@ def get_bottle_plan():
              potions = connection.execute(sqlalchemy.text("SELECT * FROM potions WHERE quantity < max_quantity ORDER BY RANDOM()")).fetchall()
              total_ml = red_ml + green_ml + blue_ml + dark_ml
              total_ml = total_ml//100 #how many potions can be made with ml available
-             days_potions = connection.execute(sqlalchemy.text("SELECT * FROM class_analytics WHERE day = :day ORDER BY times_visited, total_bought"), {"day": day}).fetchall()
+             days_potions = connection.execute(sqlalchemy.text("SELECT * FROM class_analytics WHERE day = :day ORDER BY total_bought"), {"day": day}).fetchall()
              
     potion_plan = {}
     available = 0
