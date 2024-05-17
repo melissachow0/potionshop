@@ -80,11 +80,11 @@ def get_capacity_plan():
         potion_threshold = total_potions/potion_capacity
 
         if gold > 1000:
-            if potion_threshold > .75:
+            if potion_threshold > .85:
                 potion_quantity = 1
                 gold -= 1000
         if gold > 1000:
-         if ml_threshold > .75:
+         if ml_threshold > .85:
                 ml_quantity = 1
     return {
         "potion_capacity": potion_quantity,
