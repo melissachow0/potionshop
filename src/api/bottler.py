@@ -87,7 +87,7 @@ def get_bottle_plan():
              potions = connection.execute(sqlalchemy.text("SELECT * FROM potions WHERE quantity < max_quantity ORDER BY RANDOM()")).fetchall()
              total_ml = red_ml + green_ml + blue_ml + dark_ml
              total_ml = total_ml//100 #how many potions can be made with ml available
-             days_potions = connection.execute(sqlalchemy.text("SELECT * FROM class_analytics WHERE day = :day ORDER BY total_bought"), {"day": day}).fetchall()
+             days_potions = connection.execute(sqlalchemy.text("SELECT day, SUM(total_bought), red, green, blue, dark FROM class_analytics WHERE day = :day GROUP BY day, item_sku, red,green, blue, dark ORDER BY SUM(total_bought) DESC"), {"day": day}).fetchall()
              
     potion_plan = {}
     available = 0
@@ -133,7 +133,12 @@ def get_bottle_plan():
                 potion_plan[potion.red, potion.green, potion.blue, potion.dark] = quantity
                 total_potions += quantity
             else:
-                potion_plan[potion.red, potion.green, potion.blue, potion.dark] = potion_capacity - total_potions
+                quantity = potion_capacity - total_potions
+                red_ml -= (potion.red * quantity)
+                blue_ml -= (potion.blue * quantity)
+                green_ml -= (potion.green * quantity)
+                dark_ml -= (potion.dark * quantity)
+                potion_plan[potion.red, potion.green, potion.blue, potion.dark] = quantity
                 total_potions = potion_capacity
 
     #Once potions are distributed equally, if still possible making more potions of day types
@@ -161,7 +166,12 @@ def get_bottle_plan():
                     potion_plan[potion.red, potion.green, potion.blue, potion.dark] = quantity
                 total_potions += quantity
             else:
-                potion_plan[potion.red, potion.green, potion.blue, potion.dark] = potion_capacity - total_potions
+                quantity = potion_capacity - total_potions
+                red_ml -= (potion.red * quantity)
+                blue_ml -= (potion.blue * quantity)
+                green_ml -= (potion.green * quantity)
+                dark_ml -= (potion.dark * quantity)
+                potion_plan[potion.red, potion.green, potion.blue, potion.dark] = quantity
                 total_potions = potion_capacity
 
     #check out how many random potions can be made
@@ -207,10 +217,15 @@ def get_bottle_plan():
 
                 random_total_potions += quantity
             else:
+                quantity = random_potion_capacity - random_total_potions
+                red_ml -= (potion.red * quantity)
+                blue_ml -= (potion.blue * quantity)
+                green_ml -= (potion.green * quantity)
+                dark_ml -= (potion.dark * quantity)
                 try:
-                    potion_plan[potion.red, potion.green, potion.blue, potion.dark] += (random_potion_capacity - random_total_potions)
+                    potion_plan[potion.red, potion.green, potion.blue, potion.dark] += quantity
                 except KeyError: 
-                    potion_plan[potion.red, potion.green, potion.blue, potion.dark] = (random_potion_capacity - random_total_potions)
+                    potion_plan[potion.red, potion.green, potion.blue, potion.dark] = quantity
                 random_total_potions = random_potion_capacity
 
     potions_quantity = []
