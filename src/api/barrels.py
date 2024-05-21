@@ -193,6 +193,8 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     # Find the index of the item if it already exists in the list
                     for item in barrels:
                         if item['sku'] == barrel.sku:
+                            max_quantity = barrel.quantity - item['quantity']
+                            quantity = min(quantity, gold // barrel.price, min_quantity, max_quantity)
                             item['quantity'] += quantity
                             break
                     else:
@@ -201,6 +203,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
                     total_ml += (quantity * barrel.ml_per_barrel)
                     gold -= barrel.price * quantity
+
 
 
     return barrels
