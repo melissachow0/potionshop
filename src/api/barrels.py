@@ -141,14 +141,22 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             
             if buy:
                 if barrel.ml_per_barrel == sorted_barrels[0].ml_per_barrel:
-                     quantity = min(barrel.quantity, min_quantity, gold//barrel.price) 
+                     quantity = min(barrel.quantity, min_quantity, gold//barrel.price,  ((ml_capacity - total_ml)//barrel.ml_per_barrel)//big_barrel_quantity) 
                 else:
                     quantity = min(barrel.quantity, gold//barrel.price) 
-                if quantity > 0 and (total_ml + quantity * barrel.ml_per_barrel) < ml_capacity:
-                    barrels.append({"sku": barrel.sku, "quantity": quantity,})
-                    total_ml += (quantity * barrel.ml_per_barrel)
-                    gold -= barrel.price * quantity
-            
+                if quantity > 0:
+                    if (total_ml + quantity * barrel.ml_per_barrel) < ml_capacity:
+                        barrels.append({"sku": barrel.sku, "quantity": quantity,})
+                        total_ml += (quantity * barrel.ml_per_barrel)
+                        gold -= barrel.price * quantity
+                    else:
+                        quantity = (ml_capacity - total_ml)//barrel.ml_per_barrel
+                        barrels.append({"sku": barrel.sku, "quantity": quantity,})
+                        total_ml += (quantity * barrel.ml_per_barrel)
+                        gold -= barrel.price * quantity
+                         
+                        
+                
 
        #check how many big barrels are available
         big_barrel_quantity = 0
@@ -172,16 +180,27 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         #buy as many of big barrels as there are available
         #if not big barrels buy as many as 2
         for barrel in sorted_barrels:
-                if barrel.ml_per_barrel == sorted_barrels[0].ml_per_barrel: 
-                    quantity = min(barrel.quantity, gold//barrel.price, min_quantity) 
-                else:
-                    quantity = min(barrel.quantity, gold//barrel.price, 2) 
-                if quantity > 0 and (total_ml + quantity * barrel.ml_per_barrel) < ml_capacity:
-                    sku_exists = any(item['sku'] == barrel.sku for item in barrels)
-                    if not sku_exists:
-                        barrels.append({"sku": barrel.sku, "quantity": quantity,})
-                        total_ml += (quantity * barrel.ml_per_barrel)
-                        gold -= barrel.price * quantity
+            if barrel.ml_per_barrel == sorted_barrels[0].ml_per_barrel: 
+                quantity = min(barrel.quantity, gold // barrel.price, min_quantity) 
+            else:
+                quantity = min(barrel.quantity, gold // barrel.price, 2) 
+
+            if quantity > 0:
+                if (total_ml + quantity * barrel.ml_per_barrel) >= ml_capacity:
+                    quantity = (ml_capacity - total_ml) // barrel.ml_per_barrel
+
+                if quantity > 0:  # Only proceed if the quantity is positive
+                    # Find the index of the item if it already exists in the list
+                    for item in barrels:
+                        if item['sku'] == barrel.sku:
+                            item['quantity'] += quantity
+                            break
+                    else:
+                        # If the item does not exist, add it to the list
+                        barrels.append({"sku": barrel.sku, "quantity": quantity})
+
+                    total_ml += (quantity * barrel.ml_per_barrel)
+                    gold -= barrel.price * quantity
 
 
     return barrels
