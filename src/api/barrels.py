@@ -118,6 +118,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         biggest_barrel = sorted_barrels[0].price * big_barrel_quantity
         if biggest_barrel > 0:
             min_quantity = max(gold//biggest_barrel, 1)
+            max_quantity =  ((ml_capacity - total_ml)//barrel.ml_per_barrel)//big_barrel_quantity
         else:
             min_quantity = 0
 
@@ -141,7 +142,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             
             if buy:
                 if barrel.ml_per_barrel == sorted_barrels[0].ml_per_barrel:
-                     quantity = min(barrel.quantity, min_quantity, gold//barrel.price,  ((ml_capacity - total_ml)//barrel.ml_per_barrel)//big_barrel_quantity) 
+                     quantity = min(barrel.quantity, min_quantity, gold//barrel.price, max_quantity) 
                 else:
                     quantity = min(barrel.quantity, gold//barrel.price) 
                 if quantity > 0:
@@ -151,9 +152,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         gold -= barrel.price * quantity
                     else:
                         quantity = (ml_capacity - total_ml)//barrel.ml_per_barrel
-                        barrels.append({"sku": barrel.sku, "quantity": quantity,})
-                        total_ml += (quantity * barrel.ml_per_barrel)
-                        gold -= barrel.price * quantity
+                        if quantity > 0:
+                            barrels.append({"sku": barrel.sku, "quantity": quantity,})
+                            total_ml += (quantity * barrel.ml_per_barrel)
+                            gold -= barrel.price * quantity
                          
                         
                 
